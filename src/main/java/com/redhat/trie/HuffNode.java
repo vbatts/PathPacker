@@ -55,7 +55,7 @@ public class HuffNode {
         return this.id;
     }
 
-    public Object getObject() {
+    public Object getValue() {
         return this.value;
     }
 
