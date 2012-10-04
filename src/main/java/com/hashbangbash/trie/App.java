@@ -17,6 +17,7 @@ import com.redhat.trie.Util;
 
 public class App {
     public static void main(String[] args) {
+        Util util = new Util();
         FileInputStream fis;
         DataInputStream in;
         BufferedReader br;
@@ -51,7 +52,7 @@ public class App {
             //System.out.println(contentList.toString());
 
             PathNode root = new PathNode();
-            Util.makePathTree(contentList, root);
+            util.makePathTree(contentList, root);
 
             Util.printTree(root, 0);
         }

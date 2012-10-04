@@ -31,8 +31,14 @@ import java.util.HashSet;
  *
  */
 public class Util {
-    public static PathNode makePathTree(List<String> contents, PathNode parent) {
-        PathNode endMarker = new PathNode();
+    private NodeContext ctx;
+
+    public Util() {
+        this.ctx = new NodeContext();
+    }
+
+    public PathNode makePathTree(List<String> contents, PathNode parent) {
+        PathNode endMarker = new PathNode(this.ctx);
         for (String path : contents) {
             StringTokenizer st = new StringTokenizer(path, "/");
             makePathForURL(st, parent, endMarker);
@@ -98,7 +104,7 @@ public class Util {
      * given a tokenized URL path, build out the PathNode parent,
      * and append endMarker to terminal nodes.
      */
-    private static void makePathForURL(StringTokenizer st, PathNode parent, PathNode endMarker) {
+    private void makePathForURL(StringTokenizer st, PathNode parent, PathNode endMarker) {
         if (st.hasMoreTokens()) {
             String childVal = st.nextToken();
             if (childVal.equals("")) {
@@ -116,7 +122,7 @@ public class Util {
             if (isNew) {
                 PathNode next = null;
                 if (st.hasMoreTokens()) {
-                    next = new PathNode();
+                    next = new PathNode(parent.getContext());
                     parent.addChild(new NodePair(childVal, next));
                     next.addParent(parent);
                     makePathForURL(st, next, endMarker);
@@ -130,7 +136,7 @@ public class Util {
         }
     }
 
-    public static void condenseSubTreeNodes(PathNode location) {
+    public void condenseSubTreeNodes(PathNode location) {
         // "equivalent" parents are merged
         List<PathNode> parentResult = new ArrayList<PathNode>();
         parentResult.addAll(location.getParents());
@@ -224,6 +230,40 @@ public class Util {
             }
         }
     }
+
+    private List<PathNode> orderNodes(PathNode treeRoot) {
+        List<PathNode> result = new ArrayList<PathNode>();
+
+        // walk tree to make string map
+        Set<PathNode> nodes =  getPathNodes(treeRoot);
+        for (PathNode pn : nodes) {
+            int count = pn.getParents().size();
+            if (nodes.size() == 0) {
+                nodes.add(pn);
+            }
+            else {
+                int pos = result.size();
+                for (int i = 0; i < result.size(); i++) {
+                    if (count <= result.get(i).getParents().size()) {
+                        pos = i;
+                        break;
+                    }
+                }
+                result.add(pos, pn);
+            }
+        }
+        return result; 
+    }
+
+    private Set<PathNode> getPathNodes(PathNode treeRoot) {
+        Set<PathNode> nodes = new HashSet<PathNode>();
+        nodes.add(treeRoot);
+        for (NodePair np : treeRoot.getChildren()) {
+            nodes.addAll(getPathNodes(np.getConnection()));
+        }
+        return nodes;
+    }
+
 
 }
 

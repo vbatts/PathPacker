@@ -38,6 +38,10 @@ public class PathNode {
         return this.id;
     }
     
+    public NodeContext getContext() {
+        return this.ctx;
+    }
+    
     void addChild(NodePair cp) {
         this.children.add(cp);
     }
