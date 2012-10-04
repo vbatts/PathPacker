@@ -16,6 +16,8 @@
 package com.redhat.trie;
 
 public class HuffNode {
+    public static final Object END_NODE = new Object();
+
     private long id = 0;
     private Object value = null;
     private int weight = 0;

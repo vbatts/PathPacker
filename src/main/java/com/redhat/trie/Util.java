@@ -17,14 +17,23 @@ package com.redhat.trie;
 
 import java.util.List;
 import java.util.ArrayList;
-
-import java.util.StringTokenizer;
-
-import java.io.IOException;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.StringTokenizer;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
+
+/*
+ * Util
+ *
+ */
+import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
 
 /*
  * Util
@@ -41,6 +50,9 @@ public class Util {
         return this.ctx;
     }
 
+    /*
+     * populate the parent PathNode, with the Strings in contents
+     */
     public PathNode makePathTree(List<String> contents, PathNode parent) {
         PathNode endMarker = new PathNode(getContext());
         for (String path : contents) {
@@ -51,6 +63,9 @@ public class Util {
         return parent;
     }
 
+    /* 
+     * PrettyPrint a PathNode tree
+     */
     public static void printTree(PathNode pn, int tab) {
         StringBuffer nodeRep = new StringBuffer();
         for (int i = 0; i <= tab; i++) {
@@ -78,6 +93,9 @@ public class Util {
         }
     }
 
+    /* 
+     * PrettyPrint a HuffNode tree
+     */
     public static void printTrie(HuffNode hn, int tab) {
         StringBuffer nodeRep = new StringBuffer();
         for (int i = 0; i <= tab; i++) {
@@ -268,6 +286,112 @@ public class Util {
         return nodes;
     }
 
+    private byte[] makeNodeDictionary(HuffNode stringParent,
+        HuffNode pathNodeParent, List<PathNode> pathNodes)
+        throws UnsupportedEncodingException, IOException {
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        int nodeSize = pathNodes.size();
+        if (nodeSize > 127) {
+            ByteArrayOutputStream countBaos = new ByteArrayOutputStream();
+            boolean start = false;
+            for (byte b : toByteArray(nodeSize)) {
+                if (b == 0 && !start) {
+                    continue;
+                }
+                else {
+                    countBaos.write(b);
+                    start = true;
+                }
+            }
+            baos.write(128 + countBaos.size());
+            countBaos.close();
+            baos.write(countBaos.toByteArray());
+        }
+        else {
+            baos.write(nodeSize);
+        }
+        StringBuffer bits = new StringBuffer();
+        String endNodeLocation = findHuffPath(stringParent, HuffNode.END_NODE);
+        for (PathNode pn : pathNodes) {
+            for (NodePair np : pn.getChildren()) {
+                bits.append(findHuffPath(stringParent, np.getName()));
+                bits.append(findHuffPath(pathNodeParent, np.getConnection()));
+            }
+            bits.append(endNodeLocation);
+            while (bits.length() >= 8) {
+                int next = 0;
+                for (int i = 0; i < 8; i++) {
+                    next = (byte) next << 1;
+                    if (bits.charAt(i) == '1') {
+                        next++;
+                    }
+                }
+                baos.write(next); 
+                bits.delete(0, 8); 
+            } 
+        } 
+ 
+        if (bits.length() > 0) { 
+            int next = 0; 
+            for (int i = 0;  i < 8; i++) { 
+                next = (byte) next << 1; 
+                if (i < bits.length() && bits.charAt(i) == '1') { 
+                    next++; 
+                } 
+            } 
+            baos.write(next); 
+        } 
+        byte[] result = baos.toByteArray(); 
+        /* FIXME add debugging? :-)
+        if (treeDebug) { 
+            ByteArrayInputStream bais = new ByteArrayInputStream(result); 
+            int value = bais.read(); 
+            while (value != -1) { 
+                log.debug(value); 
+                value = bais.read(); 
+            } 
+        } 
+        */
+        baos.close(); 
+        return result; 
+    } 
+
+    private byte[] toByteArray(int value) {
+        return new byte[] {
+            (byte) (value >> 24),
+            (byte) (value >> 16),
+            (byte) (value >> 8),
+            (byte) value};
+    }
+
+    public String findHuffPath(HuffNode trie, Object need) {
+        HuffNode left = trie.getLeft();
+        HuffNode right = trie.getRight();
+        if (left != null && left.getValue() != null) {
+            if (need.equals(left.getValue())) {
+                return "0";
+            }
+        }
+        if (right != null && right.getValue() != null) {
+            if (need.equals(right.getValue())) {
+                return "1";
+            }
+        }
+        if (left != null) {
+            String leftPath = findHuffPath(left, need);
+            if (leftPath.length() > 0) {
+                return "0" + leftPath;
+            }
+        }
+        if (right != null) {
+            String rightPath = findHuffPath(right, need);
+            if (rightPath.length() > 0) {
+                return "1" + rightPath;
+            }
+        }
+        return "";
+    }
 
 }
 
