@@ -22,11 +22,12 @@
 
   <target name="dist" depends="compile"
         description="generate the distribution" >
-    <!-- Create the distribution directory -->
-    <mkdir dir="${dist}/lib"/>
-
     <!-- Put everything in ${build} into the find-hidden-beds-${DSTAMP}.jar file -->
-    <jar jarfile="${dist}/lib/trie-${DSTAMP}.jar" basedir="${build}"/>
+    <jar jarfile="${dist}/trie-${DSTAMP}.jar" basedir="${build}">
+      <manifest>
+        <attribute name="Main-Class" value="com.hashbangbash.trie.App"/>
+      </manifest>
+    </jar>
   </target>
 
   <target name="clean"
