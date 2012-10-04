@@ -3,27 +3,28 @@
         simple example build file
     </description>
   <!-- set global properties for this build -->
-  <property name="src" location="src"/>
-  <property name="build" location="build"/>
-  <property name="dist"  location="dist"/>
+  <property name="src.dir" location="src"/>
+  <property name="build.dir" location="build"/>
+  <property name="dist.dir"  location="dist"/>
+  <property name="doc.dir"  location="doc"/>
 
   <target name="init">
     <!-- Create the time stamp -->
     <tstamp/>
     <!-- Create the build directory structure used by compile -->
-    <mkdir dir="${build}"/>
+    <mkdir dir="${build.dir}"/>
   </target>
 
   <target name="compile" depends="init"
         description="compile the source " >
-    <!-- Compile the java code from ${src} into ${build} -->
-    <javac srcdir="${src}" destdir="${build}"/>
+    <!-- Compile the java code from ${src.dir} into ${build.dir} -->
+    <javac srcdir="${src.dir}" destdir="${build.dir}"/>
   </target>
 
   <target name="dist" depends="compile"
         description="generate the distribution" >
-    <!-- Put everything in ${build} into the find-hidden-beds-${DSTAMP}.jar file -->
-    <jar jarfile="${dist}/trie-${DSTAMP}.jar" basedir="${build}">
+    <!-- Put everything in ${build.dir} into the find-hidden-beds-${DSTAMP}.jar file -->
+    <jar jarfile="${dist.dir}/trie-${DSTAMP}.jar" basedir="${build.dir}">
       <manifest>
         <attribute name="Main-Class" value="com.hashbangbash.trie.App"/>
       </manifest>
@@ -33,7 +34,14 @@
   <target name="clean"
         description="clean up" >
     <!-- Delete the ${build} and ${dist} directory trees -->
-    <delete dir="${build}"/>
-    <delete dir="${dist}"/>
+    <delete dir="${build.dir}"/>
+    <delete dir="${dist.dir}"/>
+    <delete dir="${doc.dir}"/>
   </target>
+
+  <!-- Generate javadocs for current project into ${doc.dir} -->
+  <target name="doc" depends="init" description="generate documentation">
+    <javadoc sourcepath="${src.dir}" destdir="${doc.dir}"/>
+  </target>
+
 </project>
