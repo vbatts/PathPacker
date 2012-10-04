@@ -15,7 +15,7 @@
 
 package com.redhat.trie;
 
-public class NodePair {
+public class NodePair implements Comparable {
     private String name;
     private PathNode connection;
 
@@ -38,6 +38,10 @@ public class NodePair {
 
     public String toString() {
         return "Name: " + name + ", Connection: " + connection.getId();
+    }
+
+    public int compareTo(Object other) {
+        return this.name.compareTo(((NodePair) other).name);
     }
 }
 

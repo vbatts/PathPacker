@@ -17,6 +17,7 @@ package com.redhat.trie;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
 
 public class PathNode {
     private long id = 0;
@@ -48,6 +49,7 @@ public class PathNode {
     }
 
     public List<NodePair> getChildren() {
+        Collections.sort(this.children);
         return this.children;
     }
 
