@@ -5,21 +5,21 @@ package com.hashbangbash.trie;
  * an external incrementor to the node id
  */
 public class NodeContext {
-    private long huffNodeId = 0;
+    private long nodeId = 0;
     
     public NodeContext() {
     }
 
     public NodeContext(long startId) {
-        this.huffNodeId = startId;
+        this.nodeId = startId;
     }
 
     public long getId() {
-        return this.huffNodeId;
+        return this.nodeId;
     }
 
     public long nextId() {
-        return this.huffNodeId++;
+        return this.nodeId++;
     }
 }
 
