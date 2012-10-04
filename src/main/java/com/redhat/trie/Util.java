@@ -37,8 +37,12 @@ public class Util {
         this.ctx = new NodeContext();
     }
 
+    NodeContext getContext() {
+        return this.ctx;
+    }
+
     public PathNode makePathTree(List<String> contents, PathNode parent) {
-        PathNode endMarker = new PathNode(this.ctx);
+        PathNode endMarker = new PathNode(getContext());
         for (String path : contents) {
             StringTokenizer st = new StringTokenizer(path, "/");
             makePathForURL(st, parent, endMarker);
