@@ -13,7 +13,7 @@
  * in this software or its documentation.
  */
 
-package com.hashbangbash.trie;
+package com.redhat.trie;
 
 import java.util.ArrayList;
 import java.util.List;
