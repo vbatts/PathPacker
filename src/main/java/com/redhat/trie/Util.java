@@ -41,7 +41,7 @@ public class Util {
         return parent;
     }
 
-    public void printTree(PathNode pn, int tab) {
+    public static void printTree(PathNode pn, int tab) {
         StringBuffer nodeRep = new StringBuffer();
         for (int i = 0; i <= tab; i++) {
             nodeRep.append("  ");
@@ -62,12 +62,13 @@ public class Util {
             nodeRep.append(cp.getConnection().getId());
             nodeRep.append("} ]");
         }
+        System.out.println(nodeRep);
         for (NodePair cp : pn.getChildren()) {
             printTree(cp.getConnection(), tab + 1);
         }
     }
 
-    public void printTrie(HuffNode hn, int tab) {
+    public static void printTrie(HuffNode hn, int tab) {
         StringBuffer nodeRep = new StringBuffer();
         for (int i = 0; i <= tab; i++) {
             nodeRep.append("  ");
@@ -84,6 +85,7 @@ public class Util {
         nodeRep.append(hn.getValue());
         nodeRep.append("]");
 
+        System.out.println(nodeRep);
         if (hn.getLeft() != null) {
             printTrie(hn.getLeft(), tab + 1);
         }

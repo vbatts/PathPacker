@@ -12,6 +12,9 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import com.redhat.trie.PathNode;
+import com.redhat.trie.Util;
+
 public class App {
     public static void main(String[] args) {
         FileInputStream fis;
@@ -45,7 +48,12 @@ public class App {
                 continue;
             }
 
-            System.out.println(contentList.toString());
+            //System.out.println(contentList.toString());
+
+            PathNode root = new PathNode();
+            Util.makePathTree(contentList, root);
+
+            Util.printTree(root, 0);
         }
     }
 }
