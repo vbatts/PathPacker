@@ -41,7 +41,14 @@
 
   <!-- Generate javadocs for current project into ${doc.dir} -->
   <target name="doc" depends="init" description="generate documentation">
-    <javadoc sourcepath="${src.dir}" destdir="${doc.dir}"/>
+    <javadoc
+        sourcepath="${src.dir}"
+        destdir="${doc.dir}"
+        author="true"
+        version="true"
+        use="true"
+        private="true"
+        />
   </target>
 
 </project>
