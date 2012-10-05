@@ -441,6 +441,20 @@ public class Util {
         return nodesList.get(0);
     }
 
+    private byte[] byteProcess(List<String> entries)
+        throws IOException, UnsupportedEncodingException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        DeflaterOutputStream dos = new DeflaterOutputStream(baos,
+            new Deflater(Deflater.BEST_COMPRESSION));
+        for (String segment : entries) {
+            dos.write(segment.getBytes("UTF-8"));
+            dos.write("\0".getBytes("UTF-8"));
+        }
+        dos.finish();
+        dos.close();
+        return baos.toByteArray();
+    }
+
     private int findSmallest(int exclude, List<HuffNode> nodes) {
         int smallest = -1;
         for (int index = 0; index < nodes.size(); index++) {
