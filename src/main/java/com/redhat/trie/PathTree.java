@@ -16,6 +16,9 @@
 package com.redhat.trie;
 
 public class PathTree {
+    private HuffNode dict;
+    private PathNode tree;
+
     public PathTree() {
     }
 }

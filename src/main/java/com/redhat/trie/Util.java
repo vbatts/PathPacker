@@ -476,6 +476,23 @@ public class Util {
                 null, left.getWeight() + right.getWeight(), left, right);
         return parent;
     }
+    
+    /* fix breakoff of hydrateContentPackage */
+    private List<String> byteArrayToStrings(byte[] ba) {
+        List<String> strings = new ArrayList<String>();
+        String str = "";
+
+        for (byte b : ba) {
+            if (b == '\0') {
+                strings.add(str);
+                str = "";
+            } else {
+                str += (char) b;
+
+            }
+        }
+        return strings;
+    }
 
     /*
      * FIXME - break this apart, so that the hydrated payload
@@ -493,17 +510,9 @@ public class Util {
         ios.finish();
         long read = i.getBytesRead();
 
-        String name = "";
         int weight = 1;
-        for (byte b : baos.toByteArray()) {
-            if (b == '\0') {
-                pathDictionary.add(new HuffNode(getHuffNodeContext(),
-                            name, weight++));
-                name = "";
-            }
-            else {
-                name += (char) b;
-            }
+        for (String name : byteArrayToStrings(baos.toByteArray())) {
+            pathDictionary.add(new HuffNode(getHuffNodeContext(), name, weight++));
         }
         pathDictionary.add(new HuffNode(HuffNode.END_NODE, weight));
         List<HuffNode> triePathDictionary = new ArrayList<HuffNode>();
