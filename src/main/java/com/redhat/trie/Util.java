@@ -419,26 +419,30 @@ public class Util {
     }
 
     public HuffNode makeTrie(List<HuffNode> nodesList) {
+        List<HuffNode> trieNodesList = new ArrayList<HuffNode>();
+
+        trieNodesList.addAll(nodesList);
+
         // drop the first node if path node value, it is not needed
-        if (nodesList.get(0).getValue() instanceof PathNode) {
-            nodesList.remove(0);
+        if (trieNodesList.get(0).getValue() instanceof PathNode) {
+            trieNodesList.remove(0);
         }
-        while (nodesList.size() > 1) {
-            int node1 = findSmallest(-1, nodesList);
-            int node2 = findSmallest(node1, nodesList);
-            HuffNode hn1 = nodesList.get(node1);
-            HuffNode hn2 = nodesList.get(node2);
+        while (trieNodesList.size() > 1) {
+            int node1 = findSmallest(-1, trieNodesList);
+            int node2 = findSmallest(node1, trieNodesList);
+            HuffNode hn1 = trieNodesList.get(node1);
+            HuffNode hn2 = trieNodesList.get(node2);
             HuffNode merged = mergeNodes(hn1, hn2);
-            nodesList.remove(hn1);
-            nodesList.remove(hn2);
-            nodesList.add(merged);
+            trieNodesList.remove(hn1);
+            trieNodesList.remove(hn2);
+            trieNodesList.add(merged);
         }
         /*
         if (treeDebug) {
-            printTrie(nodesList.get(0), 0);
+            printTrie(trieNodesList.get(0), 0);
         }
         */
-        return nodesList.get(0);
+        return trieNodesList.get(0);
     }
 
     private byte[] byteProcess(List<String> entries)
@@ -515,9 +519,7 @@ public class Util {
             pathDictionary.add(new HuffNode(getHuffNodeContext(), name, weight++));
         }
         pathDictionary.add(new HuffNode(HuffNode.END_NODE, weight));
-        List<HuffNode> triePathDictionary = new ArrayList<HuffNode>();
-        triePathDictionary.addAll(pathDictionary);
-        HuffNode pathTrie = makeTrie(triePathDictionary);
+        HuffNode pathTrie = makeTrie(pathDictionary);
 
         StringBuffer nodeBits = new StringBuffer();
         ByteArrayInputStream bais = new ByteArrayInputStream(payload,
@@ -546,9 +548,7 @@ public class Util {
         for (int j = 0; j < nodeCount; j++) {
             nodeDictionary.add(new HuffNode(new PathNode(), j));
         }
-        List<HuffNode> trieNodeDictionary = new ArrayList<HuffNode>();
-        trieNodeDictionary.addAll(nodeDictionary);
-        HuffNode nodeTrie = makeTrie(trieNodeDictionary);
+        HuffNode nodeTrie = makeTrie(nodeDictionary);
 
         // populate the PathNodes so we can rebuild the cool url tree
         Set<PathNode> pathNodes =  populatePathNodes(nodeDictionary,
