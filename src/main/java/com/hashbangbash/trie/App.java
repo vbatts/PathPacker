@@ -37,6 +37,7 @@ import org.bouncycastle.x509.extension.X509ExtensionUtil;
 
 
 public class App {
+
     public static ASN1InputStream toASN1Stream(byte[] b) {
         return new ASN1InputStream(new ByteArrayInputStream(b));
     }
@@ -189,7 +190,7 @@ public class App {
 
         bis = new BufferedInputStream(fis);
 
-        try {
+        
             cf = CertificateFactory.getInstance("X.509");
         } catch (CertificateException ex) {
             return null;
@@ -210,11 +211,15 @@ public class App {
         for (String arg : args) {
             //showTreeFromCSFIle(arg);
             //showTreeFromCSFIle(arg);
-            //bytesFromCertOid(arg, "1.3.6.1.4.1.2312.9.7");
-            //System.out.println(objectFromCertOid(arg, "1.3.6.1.4.1.2312.9.7").toString());
+
+            //X509Certificate cert = certFromFile(arg);
+            //System.out.println(cert.toString());
 
             //System.out.println(objectFromCertOid(arg, "1.3.6.1.4.1.2312.9.7").getClass().getName());
+
+            DERObject derObject;
             DEROctetString dos;
+            String aki;
             byte[] bytes;
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             List<String> contents;
@@ -225,6 +230,7 @@ public class App {
             } catch (IOException ex) {
                 System.out.println(ex);
             }
+
             bytes = decompress(baos.toByteArray());
             contents = hydrateFromBytes(bytes);
             if (contents != null) {
@@ -233,9 +239,6 @@ public class App {
                 }
             }
 
-
-            //X509Certificate cert = certFromFile(arg);
-            //System.out.println(cert.toString());
         }
     }
 }
