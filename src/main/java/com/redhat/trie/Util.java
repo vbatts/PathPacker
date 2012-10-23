@@ -521,6 +521,7 @@ public class Util {
         pathDictionary.add(new HuffNode(HuffNode.END_NODE, weight));
         HuffNode pathTrie = makeTrie(pathDictionary);
 
+        // setup input stream, offset by the dictionary, to the end
         StringBuffer nodeBits = new StringBuffer();
         ByteArrayInputStream bais = new ByteArrayInputStream(payload,
             (new Long(read)).intValue(), (new Long(payload.length - read).intValue()));
