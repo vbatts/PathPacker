@@ -27,6 +27,7 @@ import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterOutputStream;
+import java.util.zip.DataFormatException;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -34,6 +35,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
+
+import java.security.cert.X509Certificate;
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.x509.extension.X509ExtensionUtil;
 
 /*
  * Util
@@ -649,6 +654,44 @@ public class Util {
             childPath.append(child.getName());
             makeURLs(child.getConnection(), urls, childPath);
         }
+    }
+
+    public static ASN1Encodable objectFromOid(X509Certificate cert, String oid) {
+        if (cert == null) { return null; }
+
+        try {
+            for (String thisOid : cert.getNonCriticalExtensionOIDs()) {
+                if (thisOid.equals(oid)) {
+                    return X509ExtensionUtil.fromExtensionValue(cert.getExtensionValue(oid));
+                }
+            }
+        } catch (IOException ex) { }
+        return null;
+    }
+
+    public static byte[] decompress(byte[] input) {
+        Inflater inflator = new Inflater();
+        inflator.setInput(input);
+        ByteArrayOutputStream bos = new ByteArrayOutputStream(input.length);
+        byte[] buf = new byte[1024];
+        try {
+            while (true) {
+                int count = inflator.inflate(buf);
+                if (count > 0) {
+                    bos.write(buf, 0, count);
+                } else if (count == 0 && inflator.finished()) {
+                    break;
+                } else {
+                    throw new RuntimeException("bad zip data, size:"
+                            + input.length);
+                }
+            }
+        } catch (DataFormatException t) {
+            throw new RuntimeException(t);
+        } finally {
+            inflator.end();
+        }
+        return bos.toByteArray();
     }
 
 

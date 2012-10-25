@@ -17,8 +17,6 @@ import java.io.IOException;
 import com.redhat.trie.PathNode;
 import com.redhat.trie.Util;
 
-import java.util.zip.Inflater;
-import java.util.zip.DataFormatException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.cert.CertificateFactory;
@@ -30,35 +28,6 @@ import org.bouncycastle.x509.extension.X509ExtensionUtil;
 
 
 public class App {
-
-    public static ASN1InputStream toASN1Stream(byte[] b) {
-        return new ASN1InputStream(new ByteArrayInputStream(b));
-    }
-
-    public final static byte[] decompress(byte[] input) {
-        Inflater inflator = new Inflater();
-        inflator.setInput(input);
-        ByteArrayOutputStream bos = new ByteArrayOutputStream(input.length);
-        byte[] buf = new byte[1024];
-        try {
-            while (true) {
-                int count = inflator.inflate(buf);
-                if (count > 0) {
-                    bos.write(buf, 0, count);
-                } else if (count == 0 && inflator.finished()) {
-                    break;
-                } else {
-                    throw new RuntimeException("bad zip data, size:"
-                            + input.length);
-                }
-            }
-        } catch (DataFormatException t) {
-            throw new RuntimeException(t);
-        } finally {
-            inflator.end();
-        }
-        return bos.toByteArray();
-    }
 
     public static byte[] getBytesFromFile(File file) throws IOException {
         InputStream is = new FileInputStream(file);
@@ -116,23 +85,21 @@ public class App {
         return null;
     }
 
-    public static void showTreeFromCSFIle(String filename) {
+    public static List<String> listFromFile(String filename) throws IOException, FileNotFoundException {
         FileInputStream fis;
         DataInputStream in;
         BufferedReader br;
 
         String content;
         List<String> contentList;
-        Util util = new Util();
 
         try {
             fis = new FileInputStream(filename);
         } catch (FileNotFoundException ex) {
-            System.out.printf("ERROR: failed to find file %s\n", filename);
-            return;
+            throw ex;
         } catch (Throwable t) {
             System.out.printf("ERROR: [%s] %s\n", filename, t);
-            return;
+            throw t;
         }
 
         in = new DataInputStream(fis);
@@ -144,12 +111,26 @@ public class App {
             contentList.add(content);
         }
         } catch (IOException ex) {
+            throw ex;
+        }
+        return contentList;
+    }
+
+    public static void showTree(String filename) {
+        List<String> contentList;
+        try {
+            contentList = listFromFile(filename);
+        } catch (IOException ex) {
             System.out.printf("ERROR: [%s] - %s\n", filename, ex);
             return;
         }
+        showTree(contentList);
+    }
 
-        //System.out.println(contentList.toString());
+    public static void showTree(List<String> contentList) {
         PathNode root = new PathNode();
+        Util util = new Util();
+
         util.makePathTree(contentList, root);
         Util.printTree(root, 0);
     }
@@ -157,16 +138,7 @@ public class App {
     public static ASN1Encodable objectFromCertOid(String certFilename, String oid) {
         X509Certificate cert;
         cert = certFromFile(certFilename);
-        if (cert == null) { return null; }
-
-        try {
-            for (String thisOid : cert.getNonCriticalExtensionOIDs()) {
-                if (thisOid.equals(oid)) {
-                    return X509ExtensionUtil.fromExtensionValue(cert.getExtensionValue(oid));
-                }
-            }
-        } catch (IOException ex) { }
-        return null;
+        return Util.objectFromOid(cert,oid);
     }
 
     public static X509Certificate certFromFile(String certFilename) {
