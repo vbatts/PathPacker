@@ -3,6 +3,7 @@ package com.hashbangbash.trie;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Enumeration;
 
 import java.io.InputStream;
 import java.io.DataInputStream;
@@ -191,6 +192,7 @@ public class App {
         bis = new BufferedInputStream(fis);
 
         
+        try {
             cf = CertificateFactory.getInstance("X.509");
         } catch (CertificateException ex) {
             return null;
@@ -212,33 +214,18 @@ public class App {
             //showTreeFromCSFIle(arg);
             //showTreeFromCSFIle(arg);
 
-            //X509Certificate cert = certFromFile(arg);
-            //System.out.println(cert.toString());
-
-            //System.out.println(objectFromCertOid(arg, "1.3.6.1.4.1.2312.9.7").getClass().getName());
-
-            DERObject derObject;
             DEROctetString dos;
-            String aki;
-            byte[] bytes;
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
             List<String> contents;
 
             dos = (DEROctetString)objectFromCertOid(arg, "1.3.6.1.4.1.2312.9.7");
-            try {
-                baos.write(dos.getOctets());
-            } catch (IOException ex) {
-                System.out.println(ex);
+            if ((contents = hydrateFromBytes(dos.getOctets())) == null) {
+                System.out.println("FAIL");
+                return;
             }
 
-            bytes = decompress(baos.toByteArray());
-            contents = hydrateFromBytes(bytes);
-            if (contents != null) {
-                for (String content : contents) {
-                 System.out.println(content);
-                }
+            for (String content : contents) {
+                System.out.println(content);
             }
-
         }
     }
 }
