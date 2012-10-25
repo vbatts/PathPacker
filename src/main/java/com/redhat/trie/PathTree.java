@@ -15,11 +15,31 @@
 
 package com.redhat.trie;
 
+import java.util.List;
+
+/*
+ * PathTree
+ *
+ * The efficient means by which to check the content sets
+ *
+ * TODO - this is a prototype stub
+ */
 public class PathTree {
     private HuffNode dict;
     private PathNode tree;
 
     public PathTree() {
+    }
+
+    public PathTree(byte[] payload) {
+    }
+
+    public boolean validate(String contentPath) {
+        return false;
+    }
+
+    public List<String> toList() {
+        return null;
     }
 }
 

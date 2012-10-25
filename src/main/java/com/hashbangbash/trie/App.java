@@ -27,6 +27,12 @@ import org.bouncycastle.asn1.*;
 import org.bouncycastle.x509.extension.X509ExtensionUtil;
 
 
+/*
+ * App
+ *
+ * This is just a simple class to handle command line interactions
+ *
+ */
 public class App {
 
     public static byte[] getBytesFromFile(File file) throws IOException {
@@ -65,11 +71,11 @@ public class App {
     }
 
 
-    public static List<String> hydrateFromBytes(byte[] derblob) {
+    public static List<String> hydrateFromBytes(byte[] compressedBlob) {
         Util util = new Util();
 
         try {
-            return util.hydrateContentPackage(derblob);
+            return util.hydrateContentPackage(compressedBlob);
         } catch (IOException ex) {
             System.out.println(ex);
         }

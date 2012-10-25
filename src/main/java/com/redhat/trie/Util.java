@@ -43,6 +43,8 @@ import org.bouncycastle.x509.extension.X509ExtensionUtil;
 /*
  * Util
  *
+ * All the misc dirty work
+ *
  */
 public class Util {
     private NodeContext pathNodeContext;
@@ -506,8 +508,23 @@ public class Util {
     /*
      * FIXME - break this apart, so that the hydrated payload
      *         can be structure to more quickly search, and use less memory
+     *
+     *      Rename it for tracking, and to be clear about what is happening
      */
-    public List<String> hydrateContentPackage(byte[] payload)
+    public List<String> hydrateContentPackage(byte[] compressedBlob)
+        throws IOException, UnsupportedEncodingException {
+        try {
+            return listFromCompressedBlob(compressedBlob);
+        } catch (Throwable t) {
+            throw t;
+        }
+    }
+
+    /*
+     * From the deflated payload, produce the content set lists
+     *
+     */
+    public List<String> listFromCompressedBlob(byte[] payload)
         throws IOException, UnsupportedEncodingException {
         List<HuffNode> pathDictionary = new ArrayList<HuffNode>();
         List<HuffNode> nodeDictionary = new ArrayList<HuffNode>();
