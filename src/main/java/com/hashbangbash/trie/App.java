@@ -2,8 +2,6 @@ package com.hashbangbash.trie;
 
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Enumeration;
 
 import java.io.InputStream;
 import java.io.DataInputStream;
@@ -20,11 +18,7 @@ import com.redhat.trie.PathNode;
 import com.redhat.trie.Util;
 
 import java.util.zip.Inflater;
-import java.util.zip.InflaterOutputStream;
-import java.util.zip.Deflater;
-import java.util.zip.DeflaterOutputStream;
 import java.util.zip.DataFormatException;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.cert.CertificateFactory;
@@ -32,8 +26,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
 import org.bouncycastle.asn1.*;
-//import org.bouncycastle.asn1.ASN1Encodable;
-//import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.x509.extension.X509ExtensionUtil;
 
 
