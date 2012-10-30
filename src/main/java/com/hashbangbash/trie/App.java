@@ -16,6 +16,7 @@ import java.io.IOException;
 
 import com.redhat.trie.PathNode;
 import com.redhat.trie.Util;
+import com.redhat.trie.PayloadException;
 
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -76,7 +77,7 @@ public class App {
 
         try {
             return util.hydrateContentPackage(compressedBlob);
-        } catch (IOException ex) {
+        } catch (PayloadException ex) {
             System.out.println(ex);
         }
         return null;
@@ -105,7 +106,7 @@ public class App {
             throw ex;
         } catch (Throwable t) {
             System.out.printf("ERROR: [%s] %s\n", filename, t);
-            throw t;
+            return new ArrayList<String>();
         }
 
         in = new DataInputStream(fis);

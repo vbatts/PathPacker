@@ -33,8 +33,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ByteArrayInputStream;
 
 import java.security.cert.X509Certificate;
 import org.bouncycastle.asn1.ASN1Encodable;
@@ -47,27 +45,18 @@ import org.bouncycastle.x509.extension.X509ExtensionUtil;
  *
  */
 public class Util {
-    private NodeContext pathNodeContext;
-    private NodeContext huffNodeContext;
-
     public Util() {
-        this.pathNodeContext = new NodeContext();
-        this.huffNodeContext = new NodeContext();
     }
 
-    NodeContext getPathNodeContext() {
-        return this.pathNodeContext;
-    }
-
-    NodeContext getHuffNodeContext() {
-        return this.huffNodeContext;
-    }
-
-    /*
+    /**
      * populate the parent PathNode, with the Strings in contents
+     *
+     * @param contents  a list of strings to be consumed
+     * @param parent    a PathNode, will be the root node, to be populated
+     * @return          is the same object as the parent param
      */
     public PathNode makePathTree(List<String> contents, PathNode parent) {
-        PathNode endMarker = new PathNode(getPathNodeContext());
+        PathNode endMarker = new PathNode(new NodeContext());
         for (String path : contents) {
             StringTokenizer st = new StringTokenizer(path, "/");
             makePathForURL(st, parent, endMarker);
@@ -406,52 +395,6 @@ public class Util {
         return "";
     }
 
-    private List<HuffNode> getStringNodeList(List<String> pathStrings) {
-        List<HuffNode> nodes = new ArrayList<HuffNode>();
-        int idx = 1;
-        for (String part : pathStrings) {
-            nodes.add(new HuffNode(getHuffNodeContext(), part, idx++));
-        }
-        nodes.add(new HuffNode(HuffNode.END_NODE, idx));
-        return nodes;
-    }
-
-    private List<HuffNode> getPathNodeNodeList(List<PathNode> pathNodes) {
-        List<HuffNode> nodes = new ArrayList<HuffNode>();
-        int idx = 0;
-        for (PathNode pn : pathNodes) {
-            nodes.add(new HuffNode(getHuffNodeContext(), pn, idx++));
-        }
-        return nodes;
-    }
-
-    public HuffNode makeTrie(List<HuffNode> nodesList) {
-        List<HuffNode> trieNodesList = new ArrayList<HuffNode>();
-
-        trieNodesList.addAll(nodesList);
-
-        // drop the first node if path node value, it is not needed
-        if (trieNodesList.get(0).getValue() instanceof PathNode) {
-            trieNodesList.remove(0);
-        }
-        while (trieNodesList.size() > 1) {
-            int node1 = findSmallest(-1, trieNodesList);
-            int node2 = findSmallest(node1, trieNodesList);
-            HuffNode hn1 = trieNodesList.get(node1);
-            HuffNode hn2 = trieNodesList.get(node2);
-            HuffNode merged = mergeNodes(hn1, hn2);
-            trieNodesList.remove(hn1);
-            trieNodesList.remove(hn2);
-            trieNodesList.add(merged);
-        }
-        /*
-        if (treeDebug) {
-            printTrie(trieNodesList.get(0), 0);
-        }
-        */
-        return trieNodesList.get(0);
-    }
-
     private byte[] byteProcess(List<String> entries)
         throws IOException, UnsupportedEncodingException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -466,212 +409,25 @@ public class Util {
         return baos.toByteArray();
     }
 
-    private int findSmallest(int exclude, List<HuffNode> nodes) {
-        int smallest = -1;
-        for (int index = 0; index < nodes.size(); index++) {
-            if (index == exclude) {
-                continue;
-            }
-            if (smallest == -1 || nodes.get(index).getWeight() <
-                nodes.get(smallest).getWeight()) {
-                smallest = index;
-            }
-        }
-        return smallest;
-    }
-
-    private HuffNode mergeNodes(HuffNode node1, HuffNode node2) {
-        HuffNode left = node1;
-        HuffNode right = node2;
-        HuffNode parent = new HuffNode(getHuffNodeContext(),
-                null, left.getWeight() + right.getWeight(), left, right);
-        return parent;
-    }
-    
-    /* fix breakoff of hydrateContentPackage */
-    private List<String> byteArrayToStrings(byte[] ba) {
-        List<String> strings = new ArrayList<String>();
-        String str = "";
-
-        for (byte b : ba) {
-            if (b == '\0') {
-                strings.add(str);
-                str = "";
-            } else {
-                str += (char) b;
-
-            }
-        }
-        return strings;
-    }
-
     /*
+     * From the deflated payload, produce the content set lists
+     *
+     *
      * FIXME - break this apart, so that the hydrated payload
      *         can be structure to more quickly search, and use less memory
      *
      *      Rename it for tracking, and to be clear about what is happening
      */
     public List<String> hydrateContentPackage(byte[] compressedBlob)
-        throws IOException, UnsupportedEncodingException {
+        throws PayloadException {
         try {
-            return listFromCompressedBlob(compressedBlob);
+            PathTree pt = new PathTree(compressedBlob);
+            return pt.toList();
         } catch (Throwable t) {
             throw t;
         }
     }
 
-    /*
-     * From the deflated payload, produce the content set lists
-     *
-     */
-    public List<String> listFromCompressedBlob(byte[] payload)
-        throws IOException, UnsupportedEncodingException {
-        List<HuffNode> pathDictionary = new ArrayList<HuffNode>();
-        List<HuffNode> nodeDictionary = new ArrayList<HuffNode>();
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        Inflater i = new Inflater();
-        InflaterOutputStream ios = new InflaterOutputStream(baos, i);
-        ios.write(payload);
-        ios.finish();
-        long read = i.getBytesRead();
-
-        int weight = 1;
-        for (String name : byteArrayToStrings(baos.toByteArray())) {
-            pathDictionary.add(new HuffNode(getHuffNodeContext(), name, weight++));
-        }
-        pathDictionary.add(new HuffNode(HuffNode.END_NODE, weight));
-        HuffNode pathTrie = makeTrie(pathDictionary);
-
-        // setup input stream, offset by the dictionary, to the end
-        StringBuffer nodeBits = new StringBuffer();
-        ByteArrayInputStream bais = new ByteArrayInputStream(payload,
-            (new Long(read)).intValue(), (new Long(payload.length - read).intValue()));
-        int value = bais.read();
-        // check for size bits
-        int nodeCount = value;
-        if (value > 127) {
-            byte[] count = new byte[value - 128];
-            bais.read(count);
-            int total = 0;
-            for (int k = 0; k < value - 128; k++) {
-                total = (total << 8) | (count[k] & 0xFF);
-            }
-            nodeCount = total;
-        }
-        value = bais.read();
-        while (value != -1) {
-            String someBits = Integer.toString(value, 2);
-            for (int pad = 0; pad < 8 - someBits.length(); pad++) {
-                nodeBits.append("0");
-            }
-            nodeBits.append(someBits);
-            value = bais.read();
-        }
-        for (int j = 0; j < nodeCount; j++) {
-            nodeDictionary.add(new HuffNode(new PathNode(), j));
-        }
-        HuffNode nodeTrie = makeTrie(nodeDictionary);
-
-        // populate the PathNodes so we can rebuild the cool url tree
-        Set<PathNode> pathNodes =  populatePathNodes(nodeDictionary,
-            pathTrie, nodeTrie, nodeBits);
-        // find the root, he has no parents
-        PathNode root = null;
-        for (PathNode pn : pathNodes) {
-            if (pn.getParents().size() == 0) {
-                root = pn;
-                break;
-            }
-        }
-        // time to make the doughnuts
-        List<String> urls = new ArrayList<String>();
-        StringBuffer aPath = new StringBuffer();
-        makeURLs(root, urls, aPath);
-        return urls;
-    }
-
-    private Set<PathNode> populatePathNodes(List<HuffNode> nodeDictionary,
-        HuffNode pathTrie, HuffNode nodeTrie, StringBuffer nodeBits) {
-        Set<PathNode> pathNodes = new HashSet<PathNode>();
-        for (HuffNode node : nodeDictionary) {
-            pathNodes.add((PathNode) node.getValue());
-            boolean stillNode = true;
-            while (stillNode) {
-                // get first child name
-                // if its HuffNode.END_NODE we are done
-                String nameValue = null;
-                StringBuffer nameBits = new StringBuffer();
-                while (nameValue == null && stillNode) {
-                    nameBits.append(nodeBits.charAt(0));
-                    nodeBits.deleteCharAt(0);
-                    Object lookupValue = findHuffNodeValueByBits(pathTrie,
-                        nameBits.toString());
-                    if (lookupValue != null) {
-                        if (lookupValue.equals(HuffNode.END_NODE)) {
-                            stillNode = false;
-                            break;
-                        }
-                        nameValue = (String) lookupValue;
-                    }
-                    if (nodeBits.length() == 0) {
-                        stillNode = false;
-                    }
-                }
-
-                PathNode nodeValue = null;
-                StringBuffer pathBits = new StringBuffer();
-                while (nodeValue == null && stillNode) {
-                    pathBits.append(nodeBits.charAt(0));
-                    nodeBits.deleteCharAt(0);
-                    PathNode lookupValue = (PathNode) findHuffNodeValueByBits(nodeTrie,
-                        pathBits.toString());
-                    if (lookupValue != null) {
-                        nodeValue = lookupValue;
-                        nodeValue.addParent((PathNode) node.getValue());
-                        ((PathNode) node.getValue()).addChild(
-                            new NodePair(nameValue, nodeValue));
-                    }
-                    if (nodeBits.length() == 0) {
-                        stillNode = false;
-                    }
-                }
-            }
-        }
-        return pathNodes;
-    }
-
-    public Object findHuffNodeValueByBits(HuffNode trie, String bits) {
-        HuffNode left = trie.getLeft();
-        HuffNode right = trie.getRight();
-
-        if (bits.length() == 0) {
-            return trie.getValue();
-        }
-
-        char bit = bits.charAt(0);
-        if (bit == '0') {
-            if (left == null) { throw new RuntimeException("Encoded path not in trie"); }
-            return findHuffNodeValueByBits(left, bits.substring(1));
-        }
-        else if (bit == '1') {
-            if (right == null) { throw new RuntimeException("Encoded path not in trie"); }
-            return findHuffNodeValueByBits(right, bits.substring(1));
-        }
-        return null;
-    }
-
-    private void makeURLs(PathNode root, List<String> urls, StringBuffer aPath) {
-        if (root.getChildren().size() == 0) {
-            urls.add(aPath.toString());
-        }
-        for (NodePair child : root.getChildren()) {
-            StringBuffer childPath = new StringBuffer(aPath.substring(0));
-            childPath.append("/");
-            childPath.append(child.getName());
-            makeURLs(child.getConnection(), urls, childPath);
-        }
-    }
 
     public static ASN1Encodable objectFromOid(X509Certificate cert, String oid) {
         if (cert == null) { return null; }
