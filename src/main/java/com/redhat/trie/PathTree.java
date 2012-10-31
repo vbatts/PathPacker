@@ -46,7 +46,7 @@ public class PathTree {
     private List<HuffNode> pathDictionary;
     private StringBuffer nodeBits; // TODO make a smart getter for this
 
-    private byte[] payload; // FIXME - may not be needed
+    private byte[] payload;
     
     /**
      * context incrementor used when building the trees
@@ -112,8 +112,8 @@ public class PathTree {
      */
     public void setPayload(byte[] payload) {
         this.modified = true;
-        this.nodeBits = null;
-        this.nodeCount = 0;
+        setNodeBits(null);
+        setNodeCount(0);
 
         this.pathNodeContext = new NodeContext();
         this.huffNodeContext = new NodeContext();
@@ -133,18 +133,16 @@ public class PathTree {
         return this.huffNodeContext;
     }
 
-    public long getDictOffset() {
+    private long getDictOffset() {
         return this.dictOffset;
     }
 
-    public int getNodeCount() {
+    private int getNodeCount() {
         return this.nodeCount;
     }
 
     /**
      * getter for the compressed payload blob.
-     *
-     * TODO - add logic to build the payload, it the object was constructed from contentSets
      *
      * @return      byte array of deflated dict and tree.
      */
@@ -159,6 +157,10 @@ public class PathTree {
      */
     private StringBuffer getNodeBits() {
         return this.nodeBits;
+    }
+
+    private void setNodeBits(StringBuffer nodeBits) {
+        this.nodeBits = nodeBits;
     }
 
     private void setDictOffset(long offset) {
@@ -212,7 +214,7 @@ public class PathTree {
         }
         if (this.modified || this.pathDictionary == null || this.nodeDictionary == null) {
             this.nodeDictionary = new ArrayList<HuffNode>();
-            this.nodeBits = new StringBuffer();
+            setNodeBits(new StringBuffer());
 
             ByteArrayInputStream bais = new ByteArrayInputStream(getPayload(),
                 (new Long(getDictOffset())).intValue(), (new Long(getPayload().length - getDictOffset()).intValue()));
@@ -317,7 +319,7 @@ public class PathTree {
     public void setContentSets(List<String> contentSets) throws PayloadException {
         this.modified = true;
         this.nodeBits = null;
-        this.nodeCount = 0;
+        setNodeCount(0);
 
         this.pathNodeContext = new NodeContext();
         this.huffNodeContext = new NodeContext();
@@ -428,8 +430,8 @@ public class PathTree {
                 String nameValue = null;
                 StringBuffer nameBits = new StringBuffer();
                 while (nameValue == null && stillNode) {
-                    nameBits.append(nodeBits.charAt(0));
-                    nodeBits.deleteCharAt(0);
+                    nameBits.append(getNodeBits().charAt(0));
+                    getNodeBits().deleteCharAt(0);
                     Object lookupValue = findHuffNodeValueByBits(pathTrie,
                         nameBits.toString());
                     if (lookupValue != null) {
@@ -439,7 +441,7 @@ public class PathTree {
                         }
                         nameValue = (String) lookupValue;
                     }
-                    if (nodeBits.length() == 0) {
+                    if (getNodeBits().length() == 0) {
                         stillNode = false;
                     }
                 }
@@ -447,8 +449,8 @@ public class PathTree {
                 PathNode nodeValue = null;
                 StringBuffer pathBits = new StringBuffer();
                 while (nodeValue == null && stillNode) {
-                    pathBits.append(nodeBits.charAt(0));
-                    nodeBits.deleteCharAt(0);
+                    pathBits.append(getNodeBits().charAt(0));
+                    getNodeBits().deleteCharAt(0);
                     PathNode lookupValue = (PathNode) findHuffNodeValueByBits(nodeTrie,
                         pathBits.toString());
                     if (lookupValue != null) {
@@ -457,7 +459,7 @@ public class PathTree {
                         ((PathNode) node.getValue()).addChild(
                             new NodePair(nameValue, nodeValue));
                     }
-                    if (nodeBits.length() == 0) {
+                    if (getNodeBits().length() == 0) {
                         stillNode = false;
                     }
                 }
@@ -802,7 +804,9 @@ public class PathTree {
         }
     }
 
-    /* TODO ??? */
+    /**
+     * TODO ???
+     */
     private byte[] toByteArray(int value) {
         return new byte[] {
             (byte) (value >> 24),
@@ -811,7 +815,7 @@ public class PathTree {
             (byte) value};
     }
 
-    public void condenseSubTreeNodes(PathNode location) {
+    private void condenseSubTreeNodes(PathNode location) {
         // "equivalent" parents are merged
         List<PathNode> parentResult = new ArrayList<PathNode>();
         parentResult.addAll(location.getParents());
