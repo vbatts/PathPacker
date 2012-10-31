@@ -98,14 +98,9 @@ public class Util {
      *
      *      Rename it for tracking, and to be clear about what is happening
      */
-    public static List<String> hydrateContentPackage(byte[] compressedBlob)
-        throws PayloadException {
-        try {
-            PathTree pt = new PathTree(compressedBlob);
-            return pt.toList();
-        } catch (Throwable t) {
-            throw t;
-        }
+    public static List<String> hydrateContentPackage(byte[] compressedBlob) {
+        PathTree pt = new PathTree(compressedBlob);
+        return pt.toList();
     }
 
 

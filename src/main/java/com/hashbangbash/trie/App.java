@@ -71,12 +71,7 @@ public class App {
 
 
     public static List<String> hydrateFromBytes(byte[] compressedBlob) {
-        try {
-            return Util.hydrateContentPackage(compressedBlob);
-        } catch (PayloadException ex) {
-            System.out.println(ex);
-        }
-        return null;
+        return Util.hydrateContentPackage(compressedBlob);
     }
 
     public static List<String> hydrateFromFile(String filename) {
