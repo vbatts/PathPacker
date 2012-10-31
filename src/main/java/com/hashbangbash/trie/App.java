@@ -14,15 +14,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import com.redhat.trie.PathNode;
+import com.redhat.trie.PathTree;
 import com.redhat.trie.Util;
 import com.redhat.trie.PayloadException;
 
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.cert.CertificateFactory;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 
 import org.bouncycastle.asn1.*;
 import org.bouncycastle.x509.extension.X509ExtensionUtil;
@@ -73,10 +71,8 @@ public class App {
 
 
     public static List<String> hydrateFromBytes(byte[] compressedBlob) {
-        Util util = new Util();
-
         try {
-            return util.hydrateContentPackage(compressedBlob);
+            return Util.hydrateContentPackage(compressedBlob);
         } catch (PayloadException ex) {
             System.out.println(ex);
         }
@@ -135,11 +131,13 @@ public class App {
     }
 
     public static void showTree(List<String> contentList) {
-        PathNode root = new PathNode();
-        Util util = new Util();
-
-        util.makePathTree(contentList, root);
-        Util.printTree(root, 0);
+        PathTree pt;
+        try {
+            pt = new PathTree(contentList);
+            Util.printTree(pt.getRootPathNode(), 0);
+        } catch (PayloadException ex) {
+            System.out.println(ex);
+        }
     }
 
     public static ASN1Encodable objectFromCertOid(String certFilename, String oid) {
