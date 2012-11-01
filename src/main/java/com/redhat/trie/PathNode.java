@@ -74,7 +74,7 @@ public class PathNode {
     /*
      * same number of children with the same names for child nodes
      */
-    boolean isEquivalentTo(PathNode that) {
+    public boolean isEquivalentTo(PathNode that) {
         if (this.getChildren().size() != that.getChildren().size()) {
             return false;
         }
@@ -95,6 +95,47 @@ public class PathNode {
         return true;
     }
 
+    /** 
+     * check whether current PathNode, includes the paths in PathNode that, like a mask.
+     * 
+     * TODO - this is a stub
+     *
+     * @param that  PathNode to check for
+     * @return      boolean of truth!
+     */
+    public boolean includes(PathNode that) {
+        // if we are at the end of the tree we're checking against,
+        // then it includes everything up to this point.
+        if (this.getChildren().size() == 0 || that.getChildren().size() == 0) {
+            return true;
+        }
+
+        // why can java allow a list of primitives ...
+        List<Boolean> found = new ArrayList<Boolean>();
+        boolean result;
+
+        for (NodePair thisnp : this.getChildren()) {
+            for (NodePair thatnp : that.getChildren()) {
+                // keep checking, even if we hist a variablized value
+                if (thisnp.getName().startsWith("$") || thisnp.getName().equals(thatnp.getName())) {
+                    result = thisnp.getConnection().includes(thatnp.getConnection());
+                    found.add(new Boolean(result).booleanValue());
+                    break;
+                }
+                found.add(Boolean.FALSE);
+            }
+        }
+
+        if (found.contains(Boolean.FALSE)) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    /**
+     * pretty information
+     */
     public String toString() {
         String parentList =  "";
         for (PathNode parent : parents) {

@@ -112,8 +112,8 @@ public class PathTree {
      */
     public void setPayload(byte[] payload) {
         this.modified = true;
-        setNodeBits(null);
-        setNodeCount(0);
+        this.setNodeBits(null);
+        this.setNodeCount(0);
 
         this.pathNodeContext = new NodeContext();
         this.huffNodeContext = new NodeContext();
@@ -190,10 +190,10 @@ public class PathTree {
             } catch (IOException ex) {
                 throw new PayloadException();
             }
-            setDictOffset(inf.getBytesRead());
+            this.setDictOffset(inf.getBytesRead());
 
             int weight = 1;
-            for (String name : byteArrayToStringList(baos.toByteArray())) {
+            for (String name : this.byteArrayToStringList(baos.toByteArray())) {
                 this.pathDictionary.add(new HuffNode(getHuffNodeContext(), name, weight++));
             }
             this.pathDictionary.add(new HuffNode(HuffNode.END_NODE, weight));
@@ -210,17 +210,18 @@ public class PathTree {
      */
     private List<HuffNode> getNodeDictionary() throws PayloadException {
         if (this.pathDictionary == null) {
-            getPathDictionary(); // this has to run before the nodeDictionary bits are ready
+            this.getPathDictionary(); // this has to run before the nodeDictionary bits are ready
         }
         if (this.modified || this.pathDictionary == null || this.nodeDictionary == null) {
             this.nodeDictionary = new ArrayList<HuffNode>();
-            setNodeBits(new StringBuffer());
+            this.setNodeBits(new StringBuffer());
 
-            ByteArrayInputStream bais = new ByteArrayInputStream(getPayload(),
-                (new Long(getDictOffset())).intValue(), (new Long(getPayload().length - getDictOffset()).intValue()));
+            ByteArrayInputStream bais = new ByteArrayInputStream(this.getPayload(),
+                (new Long(this.getDictOffset())).intValue(),
+                (new Long(this.getPayload().length - this.getDictOffset()).intValue()));
             int value = bais.read();
             // check for size bits
-            setNodeCount(value);
+            this.setNodeCount(value);
             if (value > 127) {
                 byte[] count = new byte[value - 128];
                 try {
@@ -232,7 +233,7 @@ public class PathTree {
                 for (int k = 0; k < value - 128; k++) {
                     total = (total << 8) | (count[k] & 0xFF);
                 }
-                setNodeCount(total);
+                this.setNodeCount(total);
             }
             value = bais.read();
             while (value != -1) {
@@ -240,11 +241,11 @@ public class PathTree {
                 for (int pad = 0; pad < 8 - someBits.length(); pad++) {
                     this.nodeBits.append("0");
                 }
-                this.nodeBits.append(someBits);
+                this.getNodeBits().append(someBits);
                 value = bais.read();
             }
 
-            for (int j = 0; j < getNodeCount(); j++) {
+            for (int j = 0; j < this.getNodeCount(); j++) {
                 this.nodeDictionary.add(new HuffNode(new PathNode(getPathNodeContext()), j));
             }
         }
@@ -319,7 +320,7 @@ public class PathTree {
     public void setContentSets(List<String> contentSets) throws PayloadException {
         this.modified = true;
         this.nodeBits = null;
-        setNodeCount(0);
+        this.setNodeCount(0);
 
         this.pathNodeContext = new NodeContext();
         this.huffNodeContext = new NodeContext();
@@ -365,9 +366,9 @@ public class PathTree {
         PathNode endMarker = new PathNode(new NodeContext());
         for (String path : contents) {
             StringTokenizer st = new StringTokenizer(path, "/");
-            makePathForURL(st, parent, endMarker);
+            this.makePathForURL(st, parent, endMarker);
         }
-        condenseSubTreeNodes(endMarker);
+        this.condenseSubTreeNodes(endMarker);
         return parent;
     }
 
@@ -768,7 +769,7 @@ public class PathTree {
             for (NodePair child : parent.getChildren()) {
                 if (child.getName().equals(childVal) &&
                         !child.getConnection().equals(endMarker)) {
-                    makePathForURL(st, child.getConnection(), endMarker);
+                    this.makePathForURL(st, child.getConnection(), endMarker);
                     isNew = false;
                 }
             }
@@ -778,7 +779,7 @@ public class PathTree {
                     next = new PathNode(parent.getContext());
                     parent.addChild(new NodePair(childVal, next));
                     next.addParent(parent);
-                    makePathForURL(st, next, endMarker);
+                    this.makePathForURL(st, next, endMarker);
                 } else {
                     parent.addChild(new NodePair(childVal, endMarker));
                     if (!endMarker.getParents().contains(parent)) {

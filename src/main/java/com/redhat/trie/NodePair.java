@@ -36,6 +36,9 @@ public class NodePair implements Comparable {
         this.connection = connection;
     }
 
+    /**
+     * pretty information
+     */
     public String toString() {
         return "Name: " + name + ", Connection: " + connection.getId();
     }
