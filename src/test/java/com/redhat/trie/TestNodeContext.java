@@ -17,6 +17,7 @@ public class TestNodeContext {
     public void testNew2() {
         NodeContext nc = new NodeContext(1);
         assertNotNull(nc);
+        assertEquals(nc.getId(), 1);
     }
 
     @Test
@@ -24,9 +25,9 @@ public class TestNodeContext {
         NodeContext nc = new NodeContext();
         assertEquals(nc.getId(), 0);
 
-        long next = nc.nextId();
+        long curr = nc.nextId();
         assertEquals(nc.getId(), 1);
-        assertEquals(nc.getId(), (next + 1));
+        assertEquals(nc.getId(), (curr + 1));
     }
 }
 

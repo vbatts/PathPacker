@@ -22,17 +22,35 @@ package com.redhat.trie;
 public class NodeContext {
     private long nodeId = 0;
     
+    /**
+     * Constructs with an id of 0
+     */
     public NodeContext() {
     }
 
+    /**
+     * Constructs with provided startId
+     *
+     * @param startId   long of the id to start at
+     */
     public NodeContext(long startId) {
         this.nodeId = startId;
     }
 
+    /**
+     * current context id
+     *
+     * @return      long of current id position
+     */
     public long getId() {
         return this.nodeId;
     }
 
+    /**
+     * get current context id, and increment the id
+     *
+     * @return      long of current id position
+     */
     public long nextId() {
         return this.nodeId++;
     }
