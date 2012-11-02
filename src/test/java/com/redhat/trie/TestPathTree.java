@@ -67,17 +67,26 @@ public class TestPathTree {
         pt1 = new PathTree(bytes);
         contents1 = pt1.toList();
         
+        System.out.println(contents0.size());
+        System.out.println(contents1.size());
+
         Collections.sort(contents0);
         Collections.sort(contents1);
 
+        System.out.println("Originals, not in New");
         for (String thisS : contents0) {
             if (! contents1.contains(thisS)) {
                 System.out.println(thisS);
             }
         }
 
-        //System.out.println(contents0.size());
-        //System.out.println(contents1.size());
+        System.out.println("New, not in Original");
+        for (String thisS : contents1) {
+            if (! contents0.contains(thisS)) {
+                System.out.println(thisS);
+            }
+        }
+
         assertEquals(contents0.size(), contents1.size());
     }
 
