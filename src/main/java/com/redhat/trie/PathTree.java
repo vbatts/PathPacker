@@ -92,8 +92,6 @@ public class PathTree {
 
     /**
      * Constructor using the list of content sets.
-     *
-     * FIXME - This is a stub.
      */
     public PathTree(List<String> contentSets) throws PayloadException {
         try {
@@ -119,8 +117,6 @@ public class PathTree {
         this.huffNodeContext = new NodeContext();
 
         this.payload = payload;
-
-        //inflatePathDict
 
         this.modified = false;
     }

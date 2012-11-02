@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.io.BufferedReader;
 import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -81,6 +82,33 @@ public class App {
             System.out.println(ex);
         }
         return null;
+    }
+
+    public static void byteArrayToFile(byte[] output, String filename) {
+        try {
+            FileOutputStream fos = new FileOutputStream(filename);
+         
+            /*
+             * To write byte array to a file, use
+             * void write(byte[] bArray) method of Java FileOutputStream class.
+             *
+             * This method writes given byte array to a file.
+             */
+            fos.write(output);
+     
+            /*
+            * Close FileOutputStream using,
+            * void close() method of Java FileOutputStream class.
+            *
+            */
+            fos.flush();
+            fos.close();
+     
+        } catch(FileNotFoundException ex) {
+            System.out.println("FileNotFoundException : " + ex);
+        } catch(IOException ioe) {
+            System.out.println("IOException : " + ioe);
+        }
     }
 
     public static List<String> listFromFile(String filename) throws IOException, FileNotFoundException {
@@ -182,6 +210,7 @@ public class App {
             List<String> contents;
 
             dos = (DEROctetString)objectFromCertOid(arg, "1.3.6.1.4.1.2312.9.7");
+            //byteArrayToFile(dos.getOctets(), "herp.bin");
             if ((contents = hydrateFromBytes(dos.getOctets())) == null) {
                 System.out.println("FAIL");
                 return;
