@@ -52,6 +52,31 @@ public class TestPathTree {
     }
 
     @Test
+    public void testRootNode() {
+        PathTree pt = new PathTree();
+        List<String> contents = loadContents("contents.list");
+        try {
+            pt.setContentSets(contents);
+        } catch (PayloadException ex) {
+            fail(ex.toString());
+        }
+
+        // generate the root PathNode
+        try {
+            assertNotNull(pt.getRootPathNode());
+        } catch (PayloadException ex) {
+            fail(ex.toString());
+        }
+
+        // do it again, to make sure it was not a mistake
+        try {
+            assertNotNull(pt.getRootPathNode());
+        } catch (PayloadException ex) {
+            fail(ex.toString());
+        }
+    }
+
+    @Test
     public void testThereAndBackAgainPayload() {
         byte[] bytes;
         PathTree pt0;

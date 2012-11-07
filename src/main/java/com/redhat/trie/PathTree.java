@@ -34,6 +34,8 @@ import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.DataFormatException;
 
+import org.apache.log4j.Logger;
+
 /**
  * PathTree
  *
@@ -42,6 +44,7 @@ import java.util.zip.DataFormatException;
  * TODO - this is a prototype stub
  */
 public class PathTree {
+    private static org.apache.log4j.Logger log = Logger.getLogger(PathTree.class);
     private List<HuffNode> nodeDictionary;
     private List<HuffNode> pathDictionary;
     private StringBuffer nodeBits; // TODO make a smart getter for this
@@ -303,6 +306,40 @@ public class PathTree {
      * TODO - this is a stub
      */
     public boolean validate(String contentPath) {
+        StringTokenizer st = new StringTokenizer(contentPath, "/");
+        PathNode root;
+        PathNode pn;
+        String curTok;
+
+        try {
+            root = this.getRootPathNode();
+        } catch (PayloadException ex) {
+            log.error(ex);
+            return false;
+        }
+
+        pn = root;
+        while (st.hasMoreTokens()) {
+            curTok = st.nextToken();
+
+            for (NodePair np : pn.getChildren()) {
+                if (curTok.equals(np.getName()) || np.getName().startsWith("$")) {
+                    //System.out.println("[" + curTok + "] == [" + np.getName() + "]");
+                    if (np.getConnection().getChildren().size() == 0) {
+                        return true;
+                    }
+
+                    pn = np.getConnection();
+                    break;
+                }
+            }
+            // XXX do hot stuff
+        }
+
+        return false;
+    }
+
+    private boolean matches(PathNode pn, StringTokenizer st) {
         return false;
     }
 
@@ -321,7 +358,7 @@ public class PathTree {
         this.pathNodeContext = new NodeContext();
         this.huffNodeContext = new NodeContext();
 
-        PathNode treeRoot = makePathTree(contentSets, new PathNode());
+        PathNode treeRoot = PathTree.makePathTree(contentSets, new PathNode());
         List<String> nodeStrings = orderStrings(treeRoot);
         if (nodeStrings.size() == 0) {
             this.payload = new byte[0];
@@ -358,13 +395,14 @@ public class PathTree {
      * @param parent    a PathNode, will be the root node, to be populated
      * @return          is the same object as the parent param
      */
-    public PathNode makePathTree(List<String> contents, PathNode parent) {
+    public static PathNode makePathTree(List<String> contents, PathNode parent) {
         PathNode endMarker = new PathNode(new NodeContext());
         for (String path : contents) {
             StringTokenizer st = new StringTokenizer(path, "/");
-            this.makePathForURL(st, parent, endMarker);
+            PathTree.makePathForURL(st, parent, endMarker);
         }
-        this.condenseSubTreeNodes(endMarker);
+        //log.debug("would run condenseSubTreeNodes()");
+        //this.condenseSubTreeNodes(endMarker);
         return parent;
     }
 
@@ -754,7 +792,7 @@ public class PathTree {
      * given a tokenized URL path, build out the PathNode parent,
      * and append endMarker to terminal nodes.
      */
-    private void makePathForURL(StringTokenizer st, PathNode parent, PathNode endMarker) {
+    private static void makePathForURL(StringTokenizer st, PathNode parent, PathNode endMarker) {
         if (st.hasMoreTokens()) {
             String childVal = st.nextToken();
             if (childVal.equals("")) {
@@ -765,7 +803,7 @@ public class PathTree {
             for (NodePair child : parent.getChildren()) {
                 if (child.getName().equals(childVal) &&
                         !child.getConnection().equals(endMarker)) {
-                    this.makePathForURL(st, child.getConnection(), endMarker);
+                    PathTree.makePathForURL(st, child.getConnection(), endMarker);
                     isNew = false;
                 }
             }
@@ -775,7 +813,7 @@ public class PathTree {
                     next = new PathNode(parent.getContext());
                     parent.addChild(new NodePair(childVal, next));
                     next.addParent(parent);
-                    this.makePathForURL(st, next, endMarker);
+                    PathTree.makePathForURL(st, next, endMarker);
                 } else {
                     parent.addChild(new NodePair(childVal, endMarker));
                     if (!endMarker.getParents().contains(parent)) {

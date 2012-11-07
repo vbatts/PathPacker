@@ -42,11 +42,11 @@ public class PathNode {
         return this.ctx;
     }
     
-    void addChild(NodePair cp) {
+    public void addChild(NodePair cp) {
         this.children.add(cp);
     }
 
-    void addParent(PathNode cp) {
+    public void addParent(PathNode cp) {
         if (!parents.contains(cp)) {
             this.parents.add(cp);
         }
@@ -57,15 +57,15 @@ public class PathNode {
         return this.children;
     }
 
-    List<PathNode> getParents() {
+    public List<PathNode> getParents() {
         return this.parents;
     }
 
-    void setParents(List<PathNode> parents) {
+    public void setParents(List<PathNode> parents) {
         this.parents = parents;
     }
 
-    void addParents(List<PathNode> parents) {
+    public void addParents(List<PathNode> parents) {
         for (PathNode pn : parents) {
             addParent(pn);
         }
