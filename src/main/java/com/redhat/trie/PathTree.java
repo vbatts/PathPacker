@@ -456,6 +456,7 @@ public class PathTree {
     private Set<PathNode> populatePathNodes(List<HuffNode> nodeDictionary,
         HuffNode pathTrie, HuffNode nodeTrie, StringBuffer nodeBits) {
         Set<PathNode> pathNodes = new HashSet<PathNode>();
+        StringBuffer myNodeBits = new StringBuffer(this.getNodeBits().toString());
         for (HuffNode node : nodeDictionary) {
             pathNodes.add((PathNode) node.getValue());
             boolean stillNode = true;
@@ -465,8 +466,8 @@ public class PathTree {
                 String nameValue = null;
                 StringBuffer nameBits = new StringBuffer();
                 while (nameValue == null && stillNode) {
-                    nameBits.append(getNodeBits().charAt(0));
-                    getNodeBits().deleteCharAt(0);
+                    nameBits.append(myNodeBits.charAt(0));
+                    myNodeBits.deleteCharAt(0);
                     Object lookupValue = findHuffNodeValueByBits(pathTrie,
                         nameBits.toString());
                     if (lookupValue != null) {
@@ -476,7 +477,7 @@ public class PathTree {
                         }
                         nameValue = (String) lookupValue;
                     }
-                    if (getNodeBits().length() == 0) {
+                    if (myNodeBits.length() == 0) {
                         stillNode = false;
                     }
                 }
@@ -484,8 +485,8 @@ public class PathTree {
                 PathNode nodeValue = null;
                 StringBuffer pathBits = new StringBuffer();
                 while (nodeValue == null && stillNode) {
-                    pathBits.append(getNodeBits().charAt(0));
-                    getNodeBits().deleteCharAt(0);
+                    pathBits.append(myNodeBits.charAt(0));
+                    myNodeBits.deleteCharAt(0);
                     PathNode lookupValue = (PathNode) findHuffNodeValueByBits(nodeTrie,
                         pathBits.toString());
                     if (lookupValue != null) {
@@ -494,7 +495,7 @@ public class PathTree {
                         ((PathNode) node.getValue()).addChild(
                             new NodePair(nameValue, nodeValue));
                     }
-                    if (getNodeBits().length() == 0) {
+                    if (myNodeBits.length() == 0) {
                         stillNode = false;
                     }
                 }
