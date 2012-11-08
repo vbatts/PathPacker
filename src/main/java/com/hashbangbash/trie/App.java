@@ -15,15 +15,18 @@ import java.io.FileOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import com.redhat.trie.HuffNode;
+import com.redhat.trie.NodePair;
+import com.redhat.trie.PathNode;
 import com.redhat.trie.PathTree;
-import com.redhat.trie.Util;
 import com.redhat.trie.PayloadException;
 
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.cert.CertificateFactory;
 
-import org.bouncycastle.asn1.*;
+import org.bouncycastle.asn1.DEROctetString;
+import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.x509.extension.X509ExtensionUtil;
 
 
@@ -35,6 +38,92 @@ import org.bouncycastle.x509.extension.X509ExtensionUtil;
  */
 public class App {
 
+    /* 
+     * PrettyPrint a PathNode tree
+     */
+    public static void printTree(PathNode pn, int tab) {
+        StringBuffer nodeRep = new StringBuffer();
+        for (int i = 0; i <= tab; i++) {
+            nodeRep.append("  ");
+        }
+        nodeRep.append("Node [");
+        nodeRep.append(pn.getId());
+        nodeRep.append("]");
+
+        for (PathNode parent : pn.getParents()) {
+            nodeRep.append(" ^ [");
+            nodeRep.append(parent.getId());
+            nodeRep.append("]");
+        }
+        for (NodePair cp : pn.getChildren()) {
+            nodeRep.append(" v [");
+            nodeRep.append(cp.getName());
+            nodeRep.append(" {");
+            nodeRep.append(cp.getConnection().getId());
+            nodeRep.append("} ]");
+        }
+        System.out.println(nodeRep);
+        for (NodePair cp : pn.getChildren()) {
+            printTree(cp.getConnection(), tab + 1);
+        }
+    }
+
+    /* 
+     * PrettyPrint a HuffNode tree
+     */
+    public static void printTrie(HuffNode hn, int tab) {
+        StringBuffer nodeRep = new StringBuffer();
+        for (int i = 0; i <= tab; i++) {
+            nodeRep.append("  ");
+        }
+        nodeRep.append("Node [");
+        nodeRep.append(hn.getId());
+        nodeRep.append("]");
+
+        nodeRep.append(", Weight [");
+        nodeRep.append(hn.getWeight());
+        nodeRep.append("]");
+
+        nodeRep.append(", Value = [");
+        nodeRep.append(hn.getValue());
+        nodeRep.append("]");
+
+        System.out.println(nodeRep);
+        if (hn.getLeft() != null) {
+            printTrie(hn.getLeft(), tab + 1);
+        }
+        if (hn.getRight() != null) {
+            printTrie(hn.getRight(), tab + 1);
+        }
+    }
+
+    /*
+     * From the deflated payload, produce the content set lists
+     *
+     *
+     * FIXME - break this apart, so that the hydrated payload
+     *         can be structure to more quickly search, and use less memory
+     *
+     *      Rename it for tracking, and to be clear about what is happening
+     */
+    public static List<String> hydrateContentPackage(byte[] compressedBlob) {
+        PathTree pt = new PathTree(compressedBlob);
+        return pt.toList();
+    }
+
+
+    public static ASN1Encodable objectFromOid(X509Certificate cert, String oid) {
+        if (cert == null) { return null; }
+
+        try {
+            for (String thisOid : cert.getNonCriticalExtensionOIDs()) {
+                if (thisOid.equals(oid)) {
+                    return X509ExtensionUtil.fromExtensionValue(cert.getExtensionValue(oid));
+                }
+            }
+        } catch (IOException ex) { }
+        return null;
+    }
     public static byte[] getBytesFromFile(File file) throws IOException {
         InputStream is = new FileInputStream(file);
 
@@ -72,7 +161,7 @@ public class App {
 
 
     public static List<String> hydrateFromBytes(byte[] compressedBlob) {
-        return Util.hydrateContentPackage(compressedBlob);
+        return hydrateContentPackage(compressedBlob);
     }
 
     public static List<String> hydrateFromFile(String filename) {
@@ -157,7 +246,7 @@ public class App {
         PathTree pt;
         try {
             pt = new PathTree(contentList);
-            Util.printTree(pt.getRootPathNode(), 0);
+            printTree(pt.getRootPathNode(), 0);
         } catch (PayloadException ex) {
             System.out.println(ex);
         }
@@ -166,7 +255,7 @@ public class App {
     public static ASN1Encodable objectFromCertOid(String certFilename, String oid) {
         X509Certificate cert;
         cert = certFromFile(certFilename);
-        return Util.objectFromOid(cert,oid);
+        return objectFromOid(cert,oid);
     }
 
     public static X509Certificate certFromFile(String certFilename) {

@@ -40,14 +40,12 @@ import org.apache.log4j.Logger;
  * PathTree
  *
  * An efficient means by which to check the content sets.
- *
- * TODO - this is a prototype stub
  */
 public class PathTree {
     private static org.apache.log4j.Logger log = Logger.getLogger(PathTree.class);
     private List<HuffNode> nodeDictionary;
     private List<HuffNode> pathDictionary;
-    private StringBuffer nodeBits; // TODO make a smart getter for this
+    private StringBuffer nodeBits;
 
     private byte[] payload;
     
@@ -303,7 +301,10 @@ public class PathTree {
     }
 
     /**
-     * TODO - this is a stub
+     * Validate whether contentPath is included in this tree.
+     *
+     * @param   contentPath     A String, like "/foo/bar/baz"
+     * @return                  true or false
      */
     public boolean validate(String contentPath) {
         StringTokenizer st = new StringTokenizer(contentPath, "/");
@@ -336,10 +337,6 @@ public class PathTree {
             // XXX do hot stuff
         }
 
-        return false;
-    }
-
-    private boolean matches(PathNode pn, StringTokenizer st) {
         return false;
     }
 
@@ -585,9 +582,6 @@ public class PathTree {
         return parent;
     }
     
-    /**
-     * 
-     */
     private List<HuffNode> getStringNodeList(List<String> pathStrings) {
         List<HuffNode> nodes = new ArrayList<HuffNode>();
         int idx = 1;
@@ -598,9 +592,6 @@ public class PathTree {
         return nodes;
     }
 
-    /**
-     * 
-     */
     private List<HuffNode> getPathNodeNodeList(List<PathNode> pathNodes) {
         List<HuffNode> nodes = new ArrayList<HuffNode>();
         int idx = 0;
@@ -847,6 +838,11 @@ public class PathTree {
             (byte) value};
     }
 
+    /**
+     * FIXME this logic is causing nodes to disappear.
+     *
+     * Fix it if you feel that it is even needed...
+     */
     private static void condenseSubTreeNodes(PathNode location) {
         // "equivalent" parents are merged
         List<PathNode> parentResult = new ArrayList<PathNode>();

@@ -15,6 +15,7 @@ import java.io.IOException;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
 import org.junit.Test;
@@ -49,6 +50,32 @@ public class TestPathTree {
             fail(ex.toString());
         }
         assertNotNull(pt);
+    }
+
+    @Test
+    public void testValidation() {
+        PathTree pt = new PathTree();
+        List<String> contents = loadContents("contents.list");
+        // matches a path
+        String shouldPass =  "/content/beta/rhel/server/5/5server/x86_64/sap/os/repomd.xml";
+        // is not a match
+        String shouldFail =  "/fart/face/mcjones";
+        // tricky, because it is almost a valid path. All nodes, will have similar children. (the /vt/ is only in /5/, not /6/)
+        String shouldFailTricky =  "/content/dist/rhel/server/6/$releasever/$basearch/vt/os";
+        try {
+            pt.setContentSets(contents);
+        } catch (PayloadException ex) {
+            fail(ex.toString());
+        }
+        // for good measure ...
+        assertTrue(cmpStrings(contents, pt.toList()));
+
+        assertTrue(pt.validate(shouldPass));
+        assertFalse(pt.validate(shouldFail));
+
+        // FIXME OH NOES... the PathNode relationships are to generous
+        //assertFalse(pt.validate(shouldFailTricky));
+
     }
 
     @Test

@@ -1,9 +1,10 @@
-<project name="trie" default="dist" basedir=".">
+<project name="PathPacker" default="dist" basedir=".">
     <description>
-        simple example build file
+        simple build file, for the PathPacker trie library.
+        http://github.com/vbatts/PathPacker/
     </description>
   <!-- set global properties for this build -->
-  <property name="src.dir" location="src"/>
+  <property name="src.dir" location="src/main"/>
   <property name="build.dir" location="build"/>
   <property name="dist.dir"  location="dist"/>
   <property name="doc.dir"  location="doc"/>
@@ -22,6 +23,7 @@
         <classpath>
             <pathelement path="${classpath}"/>
             <pathelement location="lib/bcprov-jdk16-1.46.jar"/>
+            <pathelement location="lib/log4j-1.2.15.jar"/>
         </classpath>
     </javac>
   </target>
@@ -29,7 +31,7 @@
   <target name="dist" depends="compile"
         description="generate the distribution" >
     <!-- Put everything in ${build.dir} into the find-hidden-beds-${DSTAMP}.jar file -->
-    <jar jarfile="${dist.dir}/trie-${DSTAMP}.jar" basedir="${build.dir}">
+    <jar jarfile="${dist.dir}/PathPacker-${DSTAMP}.jar" basedir="${build.dir}">
       <manifest>
         <attribute name="Main-Class" value="com.hashbangbash.trie.App"/>
       </manifest>
