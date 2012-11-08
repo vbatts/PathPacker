@@ -236,7 +236,7 @@ public class PathTree {
             while (value != -1) {
                 String someBits = Integer.toString(value, 2);
                 for (int pad = 0; pad < 8 - someBits.length(); pad++) {
-                    this.nodeBits.append("0");
+                    this.getNodeBits().append("0");
                 }
                 this.getNodeBits().append(someBits);
                 value = bais.read();
@@ -334,7 +334,6 @@ public class PathTree {
                     break;
                 }
             }
-            // XXX do hot stuff
         }
 
         return false;
@@ -349,7 +348,7 @@ public class PathTree {
      */
     public void setContentSets(List<String> contentSets) throws PayloadException {
         this.modified = true;
-        this.nodeBits = null;
+        this.setNodeBits(null);
         this.setNodeCount(0);
 
         this.pathNodeContext = new NodeContext();
@@ -381,7 +380,6 @@ public class PathTree {
         }
 
         this.payload = data.toByteArray();
-
         this.modified = false;
     }
 
@@ -462,9 +460,9 @@ public class PathTree {
      * @return  the Set of weighted PathNode
      */
     private Set<PathNode> populatePathNodes(List<HuffNode> nodeDictionary,
-        HuffNode pathTrie, HuffNode nodeTrie, StringBuffer nodeBits) {
+        HuffNode pathTrie, HuffNode nodeTrie, StringBuffer theseNodeBits) {
         Set<PathNode> pathNodes = new HashSet<PathNode>();
-        StringBuffer myNodeBits = new StringBuffer(this.getNodeBits().toString());
+        StringBuffer myNodeBits = new StringBuffer(theseNodeBits.toString());
         for (HuffNode node : nodeDictionary) {
             pathNodes.add((PathNode) node.getValue());
             boolean stillNode = true;
@@ -476,8 +474,7 @@ public class PathTree {
                 while (nameValue == null && stillNode) {
                     nameBits.append(myNodeBits.charAt(0));
                     myNodeBits.deleteCharAt(0);
-                    Object lookupValue = findHuffNodeValueByBits(pathTrie,
-                        nameBits.toString());
+                    Object lookupValue = pathTrie.findByBits(nameBits.toString()).getValue();
                     if (lookupValue != null) {
                         if (lookupValue.equals(HuffNode.END_NODE)) {
                             stillNode = false;
@@ -495,8 +492,7 @@ public class PathTree {
                 while (nodeValue == null && stillNode) {
                     pathBits.append(myNodeBits.charAt(0));
                     myNodeBits.deleteCharAt(0);
-                    PathNode lookupValue = (PathNode) findHuffNodeValueByBits(nodeTrie,
-                        pathBits.toString());
+                    PathNode lookupValue = (PathNode) nodeTrie.findByBits(pathBits.toString()).getValue();
                     if (lookupValue != null) {
                         nodeValue = lookupValue;
                         nodeValue.addParent((PathNode) node.getValue());
@@ -538,26 +534,6 @@ public class PathTree {
             childPath.append(child.getName());
             makeURLs(child.getConnection(), urls, childPath);
         }
-    }
-
-    private Object findHuffNodeValueByBits(HuffNode trie, String bits) {
-        HuffNode left = trie.getLeft();
-        HuffNode right = trie.getRight();
-
-        if (bits.length() == 0) {
-            return trie.getValue();
-        }
-
-        char bit = bits.charAt(0);
-        if (bit == '0') {
-            if (left == null) { throw new RuntimeException("Encoded path not in trie"); }
-            return findHuffNodeValueByBits(left, bits.substring(1));
-        }
-        else if (bit == '1') {
-            if (right == null) { throw new RuntimeException("Encoded path not in trie"); }
-            return findHuffNodeValueByBits(right, bits.substring(1));
-        }
-        return null;
     }
 
     private int findSmallest(int exclude, List<HuffNode> nodes) {

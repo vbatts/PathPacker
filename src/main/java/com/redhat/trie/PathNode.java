@@ -21,33 +21,58 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.Collections;
 
+import org.apache.log4j.Logger;
+
+/**
+ * PathNode is the relationship to an item in the path tree.
+ *
+ * It holds the relationships to children, as well as all parents that regard it as a child.
+ *
+ * The Name of a given PathNode, is inferred by the NodePair that regards this PathNode as it's "connection"
+ */
 public class PathNode {
+    private static org.apache.log4j.Logger log = Logger.getLogger(PathTree.class);
     private long id = 0;
     private List<NodePair> children = new ArrayList<NodePair>();
     private List<PathNode> parents = new ArrayList<PathNode>();
     private NodeContext ctx = null;
 
+    /**
+     * New node, with 0 id.
+     */
     public PathNode() {
         this(new NodeContext());
     }
 
+    /**
+     * New node, with id determined by provided ctx
+     *
+     * @param   ctx     NodeContext, for id increments
+     */
     public PathNode(NodeContext ctx) {
         this.ctx = ctx;
         this.id = this.ctx.nextId();
     }
 
+    /**
+     * This node's id
+     */
     public long getId() {
         return this.id;
     }
     
+    /**
+     * The NodeContext used by this node
+     */
     public NodeContext getContext() {
         return this.ctx;
     }
     
-    public void addChild(NodePair cp) {
-        this.children.add(cp);
-    }
-
+    /**
+     * Get the nodes, from here down.
+     *
+     * @return      A unique list of all PathNode nodes, from this node down
+     */
     public Set<PathNode> getAllNodes() {
         return getAllNodes(this);
     }
@@ -67,13 +92,6 @@ public class PathNode {
         return nodes;
     }
 
-
-    public void addParent(PathNode cp) {
-        if (!parents.contains(cp)) {
-            this.parents.add(cp);
-        }
-    }
-
     public List<NodePair> getChildren() {
         Collections.sort(this.children);
         return this.children;
@@ -83,16 +101,45 @@ public class PathNode {
         return this.parents;
     }
 
+    /**
+     * A NodePair cp, as a child.
+     *
+     * TODO - determine uniqueness?
+     */
+    public void addChild(NodePair cp) {
+        this.children.add(cp);
+    }
+
+    /**
+     * A PathNode cp, as a parent.
+     *
+     * Checks whether this parent is already a parent.
+     */
+    public void addParent(PathNode cp) {
+        if (!parents.contains(cp)) {
+            this.parents.add(cp);
+        }
+    }
+
+    /**
+     * Set parents as the new List collection.
+     */
     public void setParents(List<PathNode> parents) {
         this.parents = parents;
     }
 
+    /**
+     * add entire List of parents
+     */
     public void addParents(List<PathNode> parents) {
         for (PathNode pn : parents) {
             addParent(pn);
         }
     }
 
+    /**
+     * get the inferred name of this node, through the referring NodePair.
+     */
     public String getName() {
         String name = "";
         for (NodePair child : this.getParents().get(0).getChildren()) {
@@ -103,10 +150,16 @@ public class PathNode {
         return name;
     }
 
+    /**
+     * Traverse up the tree, and get the highest ancestor PathNode.
+     */
     public PathNode getStartNode() {
         return getStartNode(this);
     }
 
+    /**
+     * Traverse up the tree, and get the highest ancestor PathNode, for node.
+     */
     public PathNode getStartNode(PathNode node) {
         if (node.getParents().size() == 0) {
             return node; // this is the end!
@@ -118,10 +171,16 @@ public class PathNode {
         return node; // when in doubt, return yourself
     }
 
+    /**
+     * Traverse down the tree, and get the "endMarker" child.
+     */
     public PathNode getEndNode() {
         return getEndNode(this);
     }
 
+    /**
+     * Traverse down the tree, and get the "endMarker" child, for node.
+     */
     public PathNode getEndNode(PathNode node) {
         if (node.getChildren().size() == 0) {
             return node; // this is the end!
@@ -132,7 +191,7 @@ public class PathNode {
         return node; // when in doubt, return yourself
     }
 
-    /*
+    /**
      * same number of children with the same names for child nodes
      */
     public boolean isEquivalentTo(PathNode that) {
@@ -159,7 +218,7 @@ public class PathNode {
     /** 
      * check whether current PathNode, includes the paths in PathNode that, like a mask.
      * 
-     * TODO - this is a stub
+     * FIXME This is not working correctly yet
      *
      * @param that  PathNode to check for
      * @return      boolean of truth!
@@ -181,17 +240,14 @@ public class PathNode {
                 if (thisnp.getName().startsWith("$") || thisnp.getName().equals(thatnp.getName())) {
                     result = thisnp.getConnection().includes(thatnp.getConnection());
                     found.add(new Boolean(result).booleanValue());
+                    log.debug("includes: " + thisnp + " == " + thatnp);
                     break;
                 }
                 found.add(Boolean.FALSE);
             }
         }
 
-        if (found.contains(Boolean.FALSE)) {
-            return false;
-        } else {
-            return true;
-        }
+        return (!found.contains(Boolean.FALSE));
     }
 
     /**

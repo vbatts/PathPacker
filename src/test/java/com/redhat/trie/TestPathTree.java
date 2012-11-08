@@ -7,9 +7,9 @@ import java.util.Collection;
 import java.util.HashSet;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStreamReader;
 import java.io.InputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
@@ -31,7 +31,7 @@ public class TestPathTree {
     @Test
     public void testNew1() {
         PathTree pt = new PathTree();
-        List<String> contents = loadContents("contents.list");
+        List<String> contents = TestHelpers.loadContents(this, "contents.list");
         try {
             pt = new PathTree(contents);
         } catch (PayloadException ex) {
@@ -43,7 +43,7 @@ public class TestPathTree {
     @Test
     public void testNew2() {
         PathTree pt = new PathTree();
-        List<String> contents = loadContents("contents.list");
+        List<String> contents = TestHelpers.loadContents(this, "contents.list");
         try {
             pt.setContentSets(contents);
         } catch (PayloadException ex) {
@@ -55,7 +55,7 @@ public class TestPathTree {
     @Test
     public void testValidation() {
         PathTree pt = new PathTree();
-        List<String> contents = loadContents("contents.list");
+        List<String> contents = TestHelpers.loadContents(this, "contents.list");
         // matches a path
         String shouldPass =  "/content/beta/rhel/server/5/5server/x86_64/sap/os/repomd.xml";
         // is not a match
@@ -68,7 +68,7 @@ public class TestPathTree {
             fail(ex.toString());
         }
         // for good measure ...
-        assertTrue(cmpStrings(contents, pt.toList()));
+        assertTrue(TestHelpers.cmpStrings(contents, pt.toList()));
 
         assertTrue(pt.validate(shouldPass));
         assertFalse(pt.validate(shouldFail));
@@ -81,7 +81,7 @@ public class TestPathTree {
     @Test
     public void testRootNode() {
         PathTree pt = new PathTree();
-        List<String> contents = loadContents("contents.list");
+        List<String> contents = TestHelpers.loadContents(this, "contents.list");
         try {
             pt.setContentSets(contents);
         } catch (PayloadException ex) {
@@ -111,7 +111,7 @@ public class TestPathTree {
         List<String> contents0;
         List<String> contents1;
 
-        bytes = loadBytes("test.bin");
+        bytes = TestHelpers.loadBytes(this, "test.bin");
         pt0 = new PathTree(bytes);
         contents0 = pt0.toList();
         for (String str : contents0) {
@@ -126,7 +126,7 @@ public class TestPathTree {
             assertNotNull(pt1);
             //printByteArray(pt1.getPayload());
             contents1 = pt1.toList();
-            assertTrue(cmpStrings(contents0, contents1));
+            assertTrue(TestHelpers.cmpStrings(contents0, contents1));
             for (String str : contents1) {
                 System.out.println(str);
             }
@@ -142,7 +142,7 @@ public class TestPathTree {
         PathTree pt1;
         PathTree pt2 = new PathTree();
         PathTree pt3;
-        List<String> contents0 = loadContents("contents.list");
+        List<String> contents0 = TestHelpers.loadContents(this, "contents.list");
         List<String> contents1;
         List<String> contents2;
         List<String> contents3;
@@ -162,7 +162,7 @@ public class TestPathTree {
         contents1 = pt1.toList();
         
         // FIXME These next two fail
-        assertTrue(cmpStrings(contents0, contents1));
+        assertTrue(TestHelpers.cmpStrings(contents0, contents1));
         assertEquals(contents0.size(), contents1.size());
 
 
@@ -174,89 +174,38 @@ public class TestPathTree {
         }
         contents2 = pt2.toList();
 
-        assertTrue(cmpStrings(contents1, contents2));
+        assertTrue(TestHelpers.cmpStrings(contents1, contents2));
         assertEquals(contents1.size(), contents2.size());
 
         pt3 = new PathTree(pt2.getPayload());
         contents3 = pt3.toList();
 
-        assertTrue(cmpStrings(contents2, contents3));
+        assertTrue(TestHelpers.cmpStrings(contents2, contents3));
         assertEquals(contents2.size(), contents3.size());
     }
 
-
-    // Helpers
-    // 
-    private boolean cmpStrings(List<String> thisList, List<String> thatList) {
-        Collection<String> thisColl = new ArrayList(thisList);
-        Collection<String> thatColl = new ArrayList(thatList);
-
-        Collection<String> similar = new HashSet<String>( thisColl );
-        Collection<String> different = new HashSet<String>();
-        different.addAll( thisColl );
-        different.addAll( thatColl );
-
-        similar.retainAll( thatColl );
-        different.removeAll( similar );
-        
-        if (different.size() > 0) {
-            System.out.printf("Different:%s%n", different);
-        }
-        return (different.size() == 0);
-    }
-
-    private void printByteArray(byte[] bytes) {
-        int width = 30;
-        int counter = 0;
-
-        for (byte b : bytes) {
-            System.out.format("%02X ", b);
-            counter++;
-            if (counter > width) {
-                counter = 0;
-                System.out.println();
-            }
-        }
-        System.out.println();
-    }
-
-    private InputStream resStream(String filename) {
-        return getClass().getClassLoader().getResourceAsStream(filename);
-    }
-
-    private byte[] loadBytes(String filename) {
-        InputStream in = resStream(filename);
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        int nRead;
-        byte[] data = new byte[16834];
-
+    /*
+    @Test
+    public void testSettingContentsTwice() {
+        PathNode pn0 = new PathNode();
+        PathNode pn1 = new PathNode();
+        PathTree pt = new PathTree();
+        List<String> contents0 = TestHelpers.loadContents(this, "contents.list");
+        List<String> contents1 = TestHelpers.loadContents(this, "contents_small.list");
         try {
-            while ((nRead = in.read(data, 0, data.length)) != -1) {
-                buffer.write(data, 0, nRead);
-            }
-            buffer.flush();
-        } catch (IOException ex) {
+            pt.setContentSets(contents0);
+            pn0 = pt.getRootPathNode(); // setup the larger PathNode
+            System.out.println(contents1);
+            pt.setContentSets(contents1);
+            pn1 = pt.getRootPathNode(); // setup the small PathNode
+        } catch (PayloadException ex) {
             fail(ex.toString());
         }
 
-        return buffer.toByteArray();
+        assertNotNull(pn0);
     }
+    */
 
-    private List<String> loadContents(String filename) {
-        String content;
-        List<String> contentList = new ArrayList<String>();
-        InputStream in = resStream(filename);
-        BufferedReader br = new BufferedReader(new InputStreamReader(in));
-
-        try {
-            while ((content = br.readLine()) != null) {
-                contentList.add(content);
-            }
-        } catch (IOException ex) {
-            fail();
-        }
-        return contentList;
-    }
 }
 
 

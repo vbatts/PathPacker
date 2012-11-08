@@ -111,6 +111,34 @@ public class HuffNode {
     }
 
     /**
+     * search down the tree, for the node,
+     * at address of String bits
+     */
+    public HuffNode findByBits(String bits) {
+        return this.findByBits(this, bits);
+    }
+
+    /**
+     * search down the tree, for the node,
+     * at address of String bits, on HuffNode trie
+     */
+    public HuffNode findByBits(HuffNode trie, String bits) {
+        if (bits.length() == 0) {
+            return trie;
+        }
+        char bit = bits.charAt(0);
+        if (bit == '0') {
+            if (getLeft() == null) { throw new RuntimeException("Encoded path not in trie"); }
+            return getLeft().findByBits(bits.substring(1));
+        }
+        else if (bit == '1') {
+            if (getRight() == null) { throw new RuntimeException("Encoded path not in trie"); }
+            return getRight().findByBits(bits.substring(1));
+        }
+        return null;
+    }
+
+    /**
      * pretty information
      */
     public String toString() {

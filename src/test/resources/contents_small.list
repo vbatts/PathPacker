@@ -1,0 +1,5 @@
+/content/beta/rhel/server/5/$releasever/$basearch/vt/os
+/content/dist/rhel/server/5/$releasever/$basearch/vt/os
+/content/dist/rhel/server/6/$releasever/$basearch/sap/os
+/content/dist/rhel/server/6/$releasever/$basearch/debug
+/content/rhb/rhel/client/6/$releasever/$basearch/devtoolset/os
