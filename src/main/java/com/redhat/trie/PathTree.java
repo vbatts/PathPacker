@@ -655,13 +655,13 @@ public class PathTree {
             baos.write(nodeSize);
         }
         StringBuffer bits = new StringBuffer();
-        String endNodeLocation = findHuffPath(stringParent, HuffNode.END_NODE);
+        String endNodeLocationBitPath = stringParent.getBitPath(HuffNode.END_NODE);
         for (PathNode pn : pathNodes) {
             for (NodePair np : pn.getChildren()) {
-                bits.append(findHuffPath(stringParent, np.getName()));
-                bits.append(findHuffPath(pathNodeParent, np.getConnection()));
+                bits.append(stringParent.getBitPath(np.getName()));
+                bits.append(pathNodeParent.getBitPath(np.getConnection()));
             }
-            bits.append(endNodeLocation);
+            bits.append(endNodeLocationBitPath);
             while (bits.length() >= 8) {
                 int next = 0;
                 for (int i = 0; i < 8; i++) {
@@ -722,34 +722,6 @@ public class PathTree {
             }
         }
         return result;
-    }
-
-    private String findHuffPath(HuffNode trie, Object need) {
-        HuffNode left = trie.getLeft();
-        HuffNode right = trie.getRight();
-        if (left != null && left.getValue() != null) {
-            if (need.equals(left.getValue())) {
-                return "0";
-            }
-        }
-        if (right != null && right.getValue() != null) {
-            if (need.equals(right.getValue())) {
-                return "1";
-            }
-        }
-        if (left != null) {
-            String leftPath = findHuffPath(left, need);
-            if (leftPath.length() > 0) {
-                return "0" + leftPath;
-            }
-        }
-        if (right != null) {
-            String rightPath = findHuffPath(right, need);
-            if (rightPath.length() > 0) {
-                return "1" + rightPath;
-            }
-        }
-        return "";
     }
 
     /**

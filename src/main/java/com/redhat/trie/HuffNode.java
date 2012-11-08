@@ -122,7 +122,7 @@ public class HuffNode {
      * search down the tree, for the node,
      * at address of String bits, on HuffNode trie
      */
-    public HuffNode findByBits(HuffNode trie, String bits) {
+    private HuffNode findByBits(HuffNode trie, String bits) {
         if (bits.length() == 0) {
             return trie;
         }
@@ -138,6 +138,40 @@ public class HuffNode {
         return null;
     }
 
+    public String getBitPath(Object need) {
+        return getBitPath(this, need);
+    }
+
+    /**
+     * get a String of the bits, that map to Object need
+     */
+    private String getBitPath(HuffNode trie, Object need) {
+        HuffNode left = trie.getLeft();
+        HuffNode right = trie.getRight();
+        if (left != null && left.getValue() != null) {
+            if (need.equals(left.getValue())) {
+                return "0";
+            }
+        }
+        if (right != null && right.getValue() != null) {
+            if (need.equals(right.getValue())) {
+                return "1";
+            }
+        }
+        if (left != null) {
+            String leftPath = getBitPath(left, need);
+            if (leftPath.length() > 0) {
+                return "0" + leftPath;
+            }
+        }
+        if (right != null) {
+            String rightPath = getBitPath(right, need);
+            if (rightPath.length() > 0) {
+                return "1" + rightPath;
+            }
+        }
+        return "";
+    }
     /**
      * pretty information
      */
