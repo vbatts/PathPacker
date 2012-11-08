@@ -185,6 +185,8 @@ public class TestPathTree {
     }
 
     /*
+     * FIXME - weird issue, where running setContentSets() twice
+     *         causes the nodeBits StringBuffer to not be set correctly ... :-(
     @Test
     public void testSettingContentsTwice() {
         PathNode pn0 = new PathNode();
