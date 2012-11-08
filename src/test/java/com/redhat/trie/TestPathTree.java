@@ -113,8 +113,12 @@ public class TestPathTree {
     public void testThereAndBackAgainCS() {
         PathTree pt0 = new PathTree();
         PathTree pt1;
+        PathTree pt2 = new PathTree();
+        PathTree pt3;
         List<String> contents0 = loadContents("contents.list");
         List<String> contents1;
+        List<String> contents2;
+        List<String> contents3;
         byte[] bytes;
 
 
@@ -130,31 +134,27 @@ public class TestPathTree {
         pt1 = new PathTree(bytes);
         contents1 = pt1.toList();
         
+        // FIXME These next two fail
         assertTrue(cmpStrings(contents0, contents1));
         assertEquals(contents0.size(), contents1.size());
 
-        //System.out.println(contents0.size());
-        //System.out.println(contents1.size());
 
-        //Collections.sort(contents0);
-        //Collections.sort(contents1);
-
-        /*
-        System.out.println("Originals, not in New");
-        for (String thisS : contents0) {
-            if (! contents1.contains(thisS)) {
-                System.out.println(thisS);
-            }
+        // LET'S DO THE TIME WARP AGAIN!!
+        try {
+            pt2 = new PathTree(contents1);
+        } catch (PayloadException ex) {
+            fail(ex.toString());
         }
+        contents2 = pt2.toList();
 
-        System.out.println("New, not in Original");
-        for (String thisS : contents1) {
-            if (! contents0.contains(thisS)) {
-                System.out.println(thisS);
-            }
-        }
-        */
+        assertTrue(cmpStrings(contents1, contents2));
+        assertEquals(contents1.size(), contents2.size());
 
+        pt3 = new PathTree(pt2.getPayload());
+        contents3 = pt3.toList();
+
+        assertTrue(cmpStrings(contents2, contents3));
+        assertEquals(contents2.size(), contents3.size());
     }
 
 

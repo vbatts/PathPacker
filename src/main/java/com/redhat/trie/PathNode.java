@@ -17,6 +17,8 @@ package com.redhat.trie;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.Collections;
 
 public class PathNode {
@@ -46,6 +48,26 @@ public class PathNode {
         this.children.add(cp);
     }
 
+    public Set<PathNode> getAllNodes() {
+        return getAllNodes(this);
+    }
+
+    /**
+     * return the unique set of PathNodes in a given node.
+     *
+     * @param node    a "root" PathNode. Which can all be a matter of perspective.
+     * @return        the unique Set of Nodes
+     */
+    public Set<PathNode> getAllNodes(PathNode node) {
+        Set<PathNode> nodes = new HashSet<PathNode>();
+        nodes.add(node);
+        for (NodePair np : node.getChildren()) {
+            nodes.addAll(getAllNodes(np.getConnection()));
+        }
+        return nodes;
+    }
+
+
     public void addParent(PathNode cp) {
         if (!parents.contains(cp)) {
             this.parents.add(cp);
@@ -69,6 +91,45 @@ public class PathNode {
         for (PathNode pn : parents) {
             addParent(pn);
         }
+    }
+
+    public String getName() {
+        String name = "";
+        for (NodePair child : this.getParents().get(0).getChildren()) {
+            if (child.getConnection().getId() == this.getId()) {
+                return child.getName();
+            }
+        }
+        return name;
+    }
+
+    public PathNode getStartNode() {
+        return getStartNode(this);
+    }
+
+    public PathNode getStartNode(PathNode node) {
+        if (node.getParents().size() == 0) {
+            return node; // this is the end!
+        }
+
+        for (PathNode parent : node.getParents()) {
+            return node.getStartNode(parent);
+        }
+        return node; // when in doubt, return yourself
+    }
+
+    public PathNode getEndNode() {
+        return getEndNode(this);
+    }
+
+    public PathNode getEndNode(PathNode node) {
+        if (node.getChildren().size() == 0) {
+            return node; // this is the end!
+        }
+        for (NodePair child : node.getChildren()) {
+            return node.getEndNode(child.getConnection());
+        }
+        return node; // when in doubt, return yourself
     }
 
     /*
@@ -142,7 +203,7 @@ public class PathNode {
             parentList += ": " + parent.getId();
         }
         parentList += "";
-        return "ID: " + id + ", Parents" + parentList + ", Children: " + children;
+        return "ID: " + id + ", Name: " + this.getName() + ", Parents" + parentList + ", Children: " + children;
     }
 }
 

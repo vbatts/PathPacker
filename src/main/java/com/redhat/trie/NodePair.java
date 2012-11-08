@@ -28,6 +28,10 @@ public class NodePair implements Comparable {
         return this.name;
     }
 
+    public long getId() {
+        return this.getConnection().getId();
+    }
+
     public PathNode getConnection() {
         return this.connection;
     }

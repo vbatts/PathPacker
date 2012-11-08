@@ -396,13 +396,24 @@ public class PathTree {
      * @return          is the same object as the parent param
      */
     public static PathNode makePathTree(List<String> contents, PathNode parent) {
-        PathNode endMarker = new PathNode(new NodeContext());
+        // find the end node
+        PathNode endMarker = parent.getEndNode();
+        // unless it is the parent
+        if (endMarker == parent) {
+            endMarker = new PathNode(parent.getContext());
+        }
+
         for (String path : contents) {
             StringTokenizer st = new StringTokenizer(path, "/");
             PathTree.makePathForURL(st, parent, endMarker);
         }
-        //log.debug("would run condenseSubTreeNodes()");
-        //this.condenseSubTreeNodes(endMarker);
+        /* XXX I am convinced, that this is not needed
+         *
+         * If you feel otherwise, then fix it's broken logic.
+         *
+         * -- vbatts
+         */
+        //condenseSubTreeNodes(endMarker);
         return parent;
     }
 
@@ -726,7 +737,7 @@ public class PathTree {
         List<PathNode> result = new ArrayList<PathNode>();
 
         // walk tree to make string map
-        Set<PathNode> nodes =  getPathNodes(treeRoot);
+        Set<PathNode> nodes =  treeRoot.getAllNodes();
         for (PathNode pn : nodes) {
             int count = pn.getParents().size();
             if (nodes.size() == 0) {
@@ -744,21 +755,6 @@ public class PathTree {
             }
         }
         return result;
-    }
-
-    /**
-     * return the unique set of PathNodes in a given treeRoot.
-     *
-     * @param treeRoot  a "root" PathNode. Which can all be a matter of perspective.
-     * @return          the unique Set of Nodes
-     */
-    private Set<PathNode> getPathNodes(PathNode treeRoot) {
-        Set<PathNode> nodes = new HashSet<PathNode>();
-        nodes.add(treeRoot);
-        for (NodePair np : treeRoot.getChildren()) {
-            nodes.addAll(getPathNodes(np.getConnection()));
-        }
-        return nodes;
     }
 
     private String findHuffPath(HuffNode trie, Object need) {
@@ -851,35 +847,31 @@ public class PathTree {
             (byte) value};
     }
 
-    private void condenseSubTreeNodes(PathNode location) {
+    private static void condenseSubTreeNodes(PathNode location) {
         // "equivalent" parents are merged
         List<PathNode> parentResult = new ArrayList<PathNode>();
         parentResult.addAll(location.getParents());
+        //log.debug(location);
         for (PathNode parent1 : location.getParents()) {
             if (!parentResult.contains(parent1)) {
                 continue;
             }
             for (PathNode parent2 : location.getParents()) {
-                if (!parentResult.contains(parent2) ||
+                if (!parentResult.contains(parent2) || 
                     parent2.getId() == parent1.getId()) {
                     continue;
                 }
                 if (parent1.isEquivalentTo(parent2)) {
                     // we merge them into smaller Id
-                    PathNode merged = parent1.getId() < parent2.getId() ?
-                        parent1 : parent2;
-                    PathNode toRemove = parent1.getId() < parent2.getId() ?
-                        parent2 : parent1;
+                    PathNode merged;
+                    PathNode toRemove;
 
-                    // track down the name of the string in the grandparent
-                    //  that points to parent
-                    String name = "";
-                    PathNode oneParent = toRemove.getParents().get(0);
-                    for (NodePair child : oneParent.getChildren()) {
-                        if (child.getConnection().getId() == toRemove.getId()) {
-                            name = child.getName();
-                            break;
-                        }
+                    if (parent1.getId() < parent2.getId()) {
+                        merged = parent2;
+                        toRemove = parent1;
+                    } else {
+                        merged = parent1;
+                        toRemove = parent2;
                     }
 
                     // copy grandparents to merged parent node.
@@ -889,8 +881,8 @@ public class PathTree {
                     // all grandparents with name now point to merged node
                     for (PathNode pn : toRemove.getParents()) { 
                         for (NodePair child : pn.getChildren()) {
-                            if (child.getName().equals(name)) {
-                                child.setConnection(merged);
+                            if (child.getConnection() == toRemove) {
+                                child.setConnection(merged); // FIXME This is where the breakage is
                             }
                         }
                     }
