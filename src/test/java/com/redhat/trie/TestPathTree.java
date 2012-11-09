@@ -110,8 +110,10 @@ public class TestPathTree {
         PathTree pt1;
         List<String> contents0;
         List<String> contents1;
+        long len0;
 
         bytes = TestHelpers.loadBytes(this, "test.bin");
+        len0 = bytes.length;
         pt0 = new PathTree(bytes);
         contents0 = pt0.toList();
         for (String str : contents0) {
@@ -126,6 +128,7 @@ public class TestPathTree {
             assertNotNull(pt1);
             //printByteArray(pt1.getPayload());
             contents1 = pt1.toList();
+            assertEquals(len0, pt1.getPayload().length);
             assertTrue(TestHelpers.cmpStrings(contents0, contents1));
             for (String str : contents1) {
                 System.out.println(str);

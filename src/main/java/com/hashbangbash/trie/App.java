@@ -124,6 +124,7 @@ public class App {
         } catch (IOException ex) { }
         return null;
     }
+
     public static byte[] getBytesFromFile(File file) throws IOException {
         InputStream is = new FileInputStream(file);
 
