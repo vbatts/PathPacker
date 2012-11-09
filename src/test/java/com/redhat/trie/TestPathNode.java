@@ -62,12 +62,15 @@ public class TestPathNode {
         List<String> contents1 = TestHelpers.loadContents(this, "contents_small.list");
 
         try {
+            // this will be the authority
             pt0.setContentSets(contents0);
             pn0 = pt0.getRootPathNode(); // setup the larger PathNode
 
+            // small tree, that is a subset of the contents in the authority
             pt1.setContentSets(contents1);
             pn1 = pt1.getRootPathNode(); // setup the small PathNode
 
+            // of that small tree, add an entry that is _not_ in the authority
             contents1.add(new String("/this/is/not/in/the/list"));
             pt2.setContentSets(contents1);
             pn2 = pt2.getRootPathNode(); // setup the small PathNode
@@ -79,9 +82,8 @@ public class TestPathNode {
         assertNotNull(pn1);
         assertNotNull(pn2);
 
-        // FIXME - Finish the test first
-        //assertTrue(pn0.includes(pn1));
-        //assertFalse(pn0.includes(pn2));
+        assertTrue(pn0.includes(pn1));
+        assertFalse(pn0.includes(pn2));
     }
 }
 

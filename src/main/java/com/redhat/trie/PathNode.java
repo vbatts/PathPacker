@@ -218,8 +218,6 @@ public class PathNode {
     /** 
      * check whether current PathNode, includes the paths in PathNode that, like a mask.
      * 
-     * FIXME This is not working correctly yet
-     *
      * @param that  PathNode to check for
      * @return      boolean of truth!
      */
@@ -234,20 +232,21 @@ public class PathNode {
         List<Boolean> found = new ArrayList<Boolean>();
         boolean result;
 
-        for (NodePair thisnp : this.getChildren()) {
-            for (NodePair thatnp : that.getChildren()) {
-                // keep checking, even if we hist a variablized value
-                if (thisnp.getName().startsWith("$") || thisnp.getName().equals(thatnp.getName())) {
+        for (NodePair thatnp : that.getChildren()) {
+            for (NodePair thisnp : this.getChildren()) {
+                // keep checking, even if we hit a variablized value
+                if ( thatnp.getName().startsWith("$") || 
+                     thisnp.getName().startsWith("$") ||
+                     thisnp.getName().equals(thatnp.getName()) ) {
                     result = thisnp.getConnection().includes(thatnp.getConnection());
                     found.add(new Boolean(result).booleanValue());
-                    log.debug("includes: " + thisnp + " == " + thatnp);
-                    break;
+                    log.debug("includes: this: " + thisnp.getName() + " == that:" + thatnp.getName());
                 }
-                found.add(Boolean.FALSE);
             }
         }
 
-        return (!found.contains(Boolean.FALSE));
+        // return true, if we've found all of thats children
+        return (found.size() == that.getChildren().size());
     }
 
     /**
