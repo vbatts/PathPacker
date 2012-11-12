@@ -79,35 +79,6 @@ def printTree(node, tab)
   end
 end
 
-def parse_args(args)
-  options = {
-    :content_list => './src/test/resources/contents.list',
-    :dot          => false,
-    :test_url     => '/content/beta/rhel/server/5/5server/x86_64/sap/os/repomd.xml',
-  }
-  opts = OptionParser.new do |opts|
-    opts.on('--dot',"output the dot digraph of content listing (defaults to #{options[:content_list]}") do |o|
-      options[:dot] = o
-    end
-    opts.on('--contents FILE', "use FILE instead of #{options[:content_list]}") do |o|
-      options[:content_list] = o
-    end
-    opts.on('--cert FILE', "read contents from certificate FILE") do |o|
-      options[:certificate] = o
-    end
-    opts.on('--test PATH', "validate PATH, instead of [#{options[:test_url]}]") do |o|
-      options[:test_url] = o
-    end
-    opts.on('--print', "print the tree of contents") do |o|
-      options[:printTree] = o
-    end
-  end
-
-  opts.parse!(args)
-
-  return options
-end
-
 # ick, using java to do SSL
 def object_from_oid(cert, oid)
   return unless cert
@@ -138,22 +109,57 @@ def value_from_oid_bunk(filename, oid)
   return OpenSSL::ASN1.decode(OpenSSL::ASN1.decode(ext.to_der).value[1].value).value
 end
 
+def parse_args(args)
+  options = {
+    :content_list => './src/test/resources/contents.list',
+    :dot          => false,
+    :test_url     => '/content/beta/rhel/server/5/5server/x86_64/sap/os/repomd.xml',
+  }
+  opts = OptionParser.new do |opts|
+    opts.on('--dot',"output the dot digraph of content listing (defaults to #{options[:content_list]}") do |o|
+      options[:dot] = o
+    end
+    opts.on('--contents FILE', "use FILE instead of #{options[:content_list]}") do |o|
+      options[:content_list] = o
+    end
+    opts.on('--cert FILE', "read contents from certificate FILE") do |o|
+      options[:certificate] = o
+    end
+    opts.on('--test PATH', "validate PATH, instead of [#{options[:test_url]}]") do |o|
+      options[:test_url] = o
+    end
+    opts.on('--print', "print the tree of contents") do |o|
+      options[:printTree] = o
+    end
+  end
+
+  opts.parse!(args)
+
+  return options
+end
+
 def main(args)
   options = parse_args(args)
 
-  STDERR.puts("[%s] %s" % [options[:test_url], pt.validate(options[:test_url])])
-
-  puts print_dot(pt(options[:content_list]).getRootPathNode()).read() if options[:dot]
-
+  if options[:dot]
+    puts print_dot(pt(options[:content_list]).getRootPathNode()).read()
+    return
+  end
   if options[:printTree]
     pn = pt.getRootPathNode
     printTree(pn, 0)
+    return
   end
   if options[:certificate]
     data = value_from_oid(options[:certificate], '1.3.6.1.4.1.2312.9.7')
     pt = Trie::PathTree.new(data.getOctets)
     puts pt.toList()
+    return
   end
+
+  # Default behaviour (no other flags provided)
+  puts "[%s] %s" % [options[:test_url], pt.validate(options[:test_url])]
+
 end
 
 main(ARGV) if $0 == __FILE__

@@ -40,9 +40,17 @@ The script ./tools/handy.rb, has plenty of functionality, and feel free to add m
         --test PATH                  validate PATH, instead of [/content/beta/rhel/server/5/5server/x86_64/sap/os/repomd.xml]
         --print                      print the tree of contents
 
+  $> jruby ./tools/handy.rb
+  [/content/beta/rhel/server/5/5server/x86_64/sap/os/repomd.xml] true
+
+  $> jruby ./tools/handy.rb --test /foo/bar/baz
+  [/foo/bar/baz] false
+
+  $> jruby ./tools/handy.rb --contents ./myfile.txt --test /foo/bar/baz
+  [/foo/bar/baz] true
+
   $> jruby ./tools/handy.rb --dot > contents.dot && dot -Tpng contents.dot -o contents.png && display contents.png
 
   $> jruby ./tools/handy.rb --cert ./src/test/resources/test-certv3.pem 
-  [/content/beta/rhel/server/5/5server/x86_64/sap/os/repomd.xml] true
   [/foo/path, /foo/path/always/$releasever, /foo/path/never]
 
