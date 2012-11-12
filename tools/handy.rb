@@ -55,7 +55,8 @@ def write_children(io, node)
 end
 
 # PrettyPrint a PathNode or HuffNode tree
-def printTree(node, tab)
+def printTree(node, tab, opts = {})
+  io = opts[:io] ? opts[:io] : STDOUT
   nodeRep = " " * tab
 
   nodeRep += "Node [#{node.getId}]"
@@ -68,14 +69,14 @@ def printTree(node, tab)
     nodeRep += " v [#{child.getName} {#{child.getId}}]"
   end if node.respond_to? :getChildren
 
-  puts nodeRep
+  io.puts nodeRep
 
   node.getChildren.each do |child|
-    printTree(child.getConnection, tab+1)
+    printTree(child.getConnection, tab+1, opts)
   end if node.respond_to? :getChildren
   if node.respond_to?(:getLeft) and node.respond_to?(:getRight)
-    printTree(node.getLeft, tab+1) if node.getLeft != nil
-    printTree(node.getRight, tab+1) if node.getRight != nil
+    printTree(node.getLeft, tab+1, opts) if node.getLeft != nil
+    printTree(node.getRight, tab+1, opts) if node.getRight != nil
   end
 end
 
@@ -109,6 +110,19 @@ def value_from_oid_bunk(filename, oid)
   return OpenSSL::ASN1.decode(OpenSSL::ASN1.decode(ext.to_der).value[1].value).value
 end
 
+def _puts(opts, str)
+  if opts[:output_file]
+    begin
+      count = File.open(opts[:output_file],'w') {|f| f.write(str) }
+      puts "wrote #{count} to #{opts[:output_file]} ..."
+    rescue => ex
+      STDERR.puts(ex)
+    end
+  else
+    puts str
+  end
+end
+
 def parse_args(args)
   options = {
     :content_list => './src/test/resources/contents.list',
@@ -131,6 +145,12 @@ def parse_args(args)
     opts.on('--print', "print the tree of contents") do |o|
       options[:printTree] = o
     end
+    opts.on('--gen-payload', 'generate the binary payload from the content sets') do |o|
+      options[:payload] = o
+    end
+    opts.on('-o FILE','put output to FILE, instead of STDOUT') do |o|
+      options[:output_file] = o
+    end
   end
 
   opts.parse!(args)
@@ -142,18 +162,27 @@ def main(args)
   options = parse_args(args)
 
   if options[:dot]
-    puts print_dot(pt(options[:content_list]).getRootPathNode()).read()
+    _puts(options, print_dot(pt(options[:content_list]).getRootPathNode()).read())
     return
   end
   if options[:printTree]
     pn = pt.getRootPathNode
-    printTree(pn, 0)
+    io = options[:output_file] ? File.open(options[:output_file], 'w') : STDOUT
+    printTree(pn, 0, :io => io)
+    if options[:output_file]
+      puts "wrote #{io.pos} to #{options[:output_file]} ..."
+      io.close
+    end
     return
   end
   if options[:certificate]
     data = value_from_oid(options[:certificate], '1.3.6.1.4.1.2312.9.7')
     pt = Trie::PathTree.new(data.getOctets)
-    puts pt.toList()
+    _puts(options, pt.toList())
+    return
+  end
+  if options[:payload]
+    _puts(options, pt(options[:content_list]).getPayload())
     return
   end
 
