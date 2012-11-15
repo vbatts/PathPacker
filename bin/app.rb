@@ -181,12 +181,12 @@ def main(args)
   if options[:certificate]
     data = value_from_oid(options[:certificate], '1.3.6.1.4.1.2312.9.7')
     pt = Trie::PathTree.new(data.getOctets)
-    _puts(options, pt.toList())
+    _puts(options, pt.toList().join("\n"))
     return
   end
   if options[:binary_file]
     pt = Trie::PathTree.new(File.read(options[:binary_file]).to_java_bytes)
-    _puts(options, pt.toList())
+    _puts(options, pt.toList().join("\n"))
     return
   end
   if options[:payload]
