@@ -29,10 +29,10 @@ Tools
 
 The CLI class was done away with, so as not to ship in the jar, anything uneeded for 
 the library. It's been rewritten in jRuby (see http://jruby.org/ ).
-The script ./tools/handy.rb, has plenty of functionality, and feel free to add more.
+The script ./bin/app.rb, has plenty of functionality, and feel free to add more.
 
 ** Usage
-  $> jruby tools/handy.rb --help
+  $> jruby bin/app.rb --help
   Usage: handy [options]
         --dot                        output the dot digraph of content listing (defaults to ./src/test/resources/contents.list
         --contents FILE              use FILE instead of ./src/test/resources/contents.list
@@ -40,17 +40,17 @@ The script ./tools/handy.rb, has plenty of functionality, and feel free to add m
         --test PATH                  validate PATH, instead of [/content/beta/rhel/server/5/5server/x86_64/sap/os/repomd.xml]
         --print                      print the tree of contents
 
-  $> jruby ./tools/handy.rb
+  $> jruby ./bin/app.rb
   [/content/beta/rhel/server/5/5server/x86_64/sap/os/repomd.xml] true
 
-  $> jruby ./tools/handy.rb --test /foo/bar/baz
+  $> jruby ./bin/app.rb --test /foo/bar/baz
   [/foo/bar/baz] false
 
-  $> jruby ./tools/handy.rb --contents ./myfile.txt --test /foo/bar/baz
+  $> jruby ./bin/app.rb --contents ./myfile.txt --test /foo/bar/baz
   [/foo/bar/baz] true
 
-  $> jruby ./tools/handy.rb --dot > contents.dot && dot -Tpng contents.dot -o contents.png && display contents.png
+  $> jruby ./bin/app.rb --dot > contents.dot && dot -Tpng contents.dot -o contents.png && display contents.png
 
-  $> jruby ./tools/handy.rb --cert ./src/test/resources/test-certv3.pem 
+  $> jruby ./bin/app.rb --cert ./src/test/resources/test-certv3.pem 
   [/foo/path, /foo/path/always/$releasever, /foo/path/never]
 
