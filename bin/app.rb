@@ -136,13 +136,16 @@ def parse_args(args)
     opts.on('--contents FILE', "use FILE instead of #{options[:content_list]}") do |o|
       options[:content_list] = o
     end
-    opts.on('--cert FILE', "read contents from certificate FILE") do |o|
+    opts.on('--cert FILE', 'read contents from certificate FILE') do |o|
       options[:certificate] = o
+    end
+    opts.on('--binary FILE', 'read contents from packed binary FILE') do |o|
+      options[:binary_file] = o
     end
     opts.on('--test PATH', "validate PATH, instead of [#{options[:test_url]}]") do |o|
       options[:test_url] = o
     end
-    opts.on('--print', "print the tree of contents") do |o|
+    opts.on('--print', 'print the tree of contents') do |o|
       options[:printTree] = o
     end
     opts.on('--gen-payload', 'generate the binary payload from the content sets') do |o|
@@ -178,6 +181,11 @@ def main(args)
   if options[:certificate]
     data = value_from_oid(options[:certificate], '1.3.6.1.4.1.2312.9.7')
     pt = Trie::PathTree.new(data.getOctets)
+    _puts(options, pt.toList())
+    return
+  end
+  if options[:binary_file]
+    pt = Trie::PathTree.new(File.read(options[:binary_file]).to_java_bytes)
     _puts(options, pt.toList())
     return
   end
