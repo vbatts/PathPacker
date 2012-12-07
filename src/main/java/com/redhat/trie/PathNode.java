@@ -194,20 +194,29 @@ public class PathNode {
     /**
      * same number of children with the same names for child nodes
      */
-    public boolean isEquivalentTo(PathNode that) {
+    boolean isEquivalentTo(PathNode that) {
+        // same number of children with the same names for child nodes
         if (this.getChildren().size() != that.getChildren().size()) {
             return false;
+        }
+
+        if (this.getId() == that.getId()) {
+            return true;
         }
 
         for (NodePair thisnp : this.getChildren()) {
             boolean found = false;
             for (NodePair thatnp : that.getChildren()) {
                 if (thisnp.getName().equals(thatnp.getName())) {
-                    found = true;
-                    break;
+                    if(thisnp.getConnection().isEquivalentTo(thatnp.getConnection())) {
+                        found = true;
+                        break;
+                    }
+                    else {
+                        return false;
+                    }   
                 }
             }
-
             if (!found) {
                 return false;
             }

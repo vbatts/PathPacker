@@ -164,7 +164,6 @@ public class TestPathTree {
         pt1 = new PathTree(bytes);
         contents1 = pt1.toList();
         
-        // FIXME These next two fail when condenseSubTreeNodes is used ..
         assertTrue(TestHelpers.cmpStrings(contents0, contents1));
         assertEquals(contents0.size(), contents1.size());
 

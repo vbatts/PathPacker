@@ -193,7 +193,7 @@ public class PathTree {
             for (String name : this.byteArrayToStringList(baos.toByteArray())) {
                 this.pathDictionary.add(new HuffNode(getHuffNodeContext(), name, weight++));
             }
-            this.pathDictionary.add(new HuffNode(HuffNode.END_NODE, weight));
+            this.pathDictionary.add(new HuffNode(getHuffNodeContext(), HuffNode.END_NODE, weight));
         }
         return this.pathDictionary;
     }
@@ -234,7 +234,12 @@ public class PathTree {
             }
             value = bais.read();
             while (value != -1) {
-                String someBits = Integer.toString(value, 2);
+                String someBits = Integer.toString(value, 2); // string of binary for the byte
+
+                // ensure there are zeros to fill the space,
+                // such that each 8 positions is a single node
+                // XXX if the mapping for nodes is confined to 8 bits,
+                // then we can't have more than 255 unique nodes?
                 for (int pad = 0; pad < 8 - someBits.length(); pad++) {
                     this.getNodeBits().append("0");
                 }
@@ -243,7 +248,7 @@ public class PathTree {
             }
 
             for (int j = 0; j < this.getNodeCount(); j++) {
-                this.nodeDictionary.add(new HuffNode(new PathNode(getPathNodeContext()), j));
+                this.nodeDictionary.add(new HuffNode(getHuffNodeContext(), new PathNode(getPathNodeContext()), j));
             }
         }
         return this.nodeDictionary;
@@ -408,7 +413,7 @@ public class PathTree {
          *
          * -- vbatts
          */
-        //condenseSubTreeNodes(endMarker);
+        condenseSubTreeNodes(endMarker);
         return parent;
     }
 
@@ -536,6 +541,10 @@ public class PathTree {
         }
     }
 
+    /** Return the weight of the smallest weighted node of the nodes list.
+     *
+     * You can pass a index of the list to skip (-1 will not skip any index)
+     */
     private int findSmallest(int exclude, List<HuffNode> nodes) {
         int smallest = -1;
         for (int index = 0; index < nodes.size(); index++) {

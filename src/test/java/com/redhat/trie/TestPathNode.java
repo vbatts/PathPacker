@@ -26,11 +26,10 @@ public class TestPathNode {
 
     @Test
     public void testEquivalent() {
-        NodeContext ctx0 = new NodeContext();
-        NodeContext ctx1 = new NodeContext();
+        NodeContext ctx = new NodeContext();
         PathNode endMarker = new PathNode();
-        PathNode pn0 = new PathNode(ctx0);
-        PathNode pn1 = new PathNode(ctx1);
+        PathNode pn0 = new PathNode(ctx);
+        PathNode pn1 = new PathNode(ctx);
 
         assertTrue(pn0.isEquivalentTo(pn1));
 
