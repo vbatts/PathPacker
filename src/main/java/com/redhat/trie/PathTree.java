@@ -407,12 +407,6 @@ public class PathTree {
             StringTokenizer st = new StringTokenizer(path, "/");
             PathTree.makePathForURL(st, parent, endMarker);
         }
-        /* XXX I am convinced, that this is not needed
-         *
-         * If you feel otherwise, then fix it's broken logic.
-         *
-         * -- vbatts
-         */
         condenseSubTreeNodes(endMarker);
         return parent;
     }
@@ -464,11 +458,11 @@ public class PathTree {
      *
      * @return  the Set of weighted PathNode
      */
-    private Set<PathNode> populatePathNodes(List<HuffNode> nodeDictionary,
+    private Set<PathNode> populatePathNodes(List<HuffNode> thisNodeDictionary,
         HuffNode pathTrie, HuffNode nodeTrie, StringBuffer theseNodeBits) {
         Set<PathNode> pathNodes = new HashSet<PathNode>();
         StringBuffer myNodeBits = new StringBuffer(theseNodeBits.toString());
-        for (HuffNode node : nodeDictionary) {
+        for (HuffNode node : thisNodeDictionary) {
             pathNodes.add((PathNode) node.getValue());
             boolean stillNode = true;
             while (stillNode) {
