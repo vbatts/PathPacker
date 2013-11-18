@@ -5,3 +5,6 @@ build/
 dist/
 out/
 target/
+.project
+.classpath
+.settings/
