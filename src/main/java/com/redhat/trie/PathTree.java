@@ -308,40 +308,56 @@ public class PathTree {
     /**
      * Validate whether contentPath is included in this tree.
      *
-     * @param   contentPath     A String, like "/foo/bar/baz"
-     * @return                  true or false
+     * @param  contentPath     A String, like "/foo/bar/baz"
+     * @return true or false
      */
-    public boolean validate(String contentPath) {
-        StringTokenizer st = new StringTokenizer(contentPath, "/");
-        PathNode root;
-        PathNode pn;
-        String curTok;
-
-        try {
-            root = this.getRootPathNode();
-        } catch (PayloadException ex) {
-            log.error(ex);
-            return false;
-        }
-
-        pn = root;
-        while (st.hasMoreTokens()) {
-            curTok = st.nextToken();
-
-            for (NodePair np : pn.getChildren()) {
-                if (curTok.equals(np.getName()) || np.getName().startsWith("$")) {
-                    //System.out.println("[" + curTok + "] == [" + np.getName() + "]");
-                    if (np.getConnection().getChildren().size() == 0) {
-                        return true;
-                    }
-
-                    pn = np.getConnection();
-                    break;
-                }
-            }
-        }
-
+    public boolean validate(final String contentPath) {
+      PathNode rootPathNode = null;
+      try {
+        rootPathNode = getRootPathNode();
+      } catch(PayloadException pe) {
+        log.error(pe);
         return false;
+      }
+      return test(contentPath, rootPathNode);
+    }
+
+    /** Character used to delimit client path request elements */
+    private static String PATH_DELIMITER = "/";
+    /** Character used as a variable name prefix in content path definitions */
+    private static String CONTENT_PATH_VARIABLE_PREFIX = "$";
+    /**
+     * Tests if the given path request is reachable via the current <tt>tree.</tt>.
+     * @param request The request to test.
+     * @param tree The content path tree.
+     * @return <tt>true</tt> if the path is reachable and <tt>false</tt> otherwise.
+     */
+    private boolean test(final String request, final PathNode tree) {
+      /* Request is of the form "/content/rc/rhel/7/..." 
+       * Grab the next element.
+       */
+      log.debug("test(" + request + ")");
+      StringTokenizer tokenizer = new StringTokenizer(request, PATH_DELIMITER);
+      if(tokenizer.countTokens() == 0) {
+        return false;
+      }
+      String currentToken = tokenizer.nextToken();
+      for(NodePair nodePair: tree.getChildren()) {
+        String nodePairName = nodePair.getName();
+        log.debug("Current token: [" + currentToken + "] =??= NodePair name: [" + nodePairName + "]");
+        if(currentToken.equals(nodePairName) || nodePairName.startsWith(CONTENT_PATH_VARIABLE_PREFIX)) {
+          if(nodePair.hasNoChildren()) {
+            return true;
+          } else {
+            String s = PATH_DELIMITER + currentToken;
+            boolean retval = test(request.substring(currentToken.length()+1), nodePair.getConnection());
+            if(retval) {
+              return true;
+            }
+          }
+        }
+      }
+      return false;
     }
 
     /**

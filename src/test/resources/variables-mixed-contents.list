@@ -1,0 +1,16 @@
+/content/rc/rhel/server/7/$basearch/highavailability/debug
+/content/rc/rhel/server/7/$basearch/resilientstorage/debug
+/content/rc/rhel/server/7/$basearch/resilientstorage/source/SRPMS
+/content/rc/rhel/server/7/x86_64/debug
+/content/rc/rhel/server/7/$basearch/highavailability/os
+/content/rc/rhel/server/7/$basearch/highavailability/source/SRPMS
+/content/rc/rhel/server/7/x86_64/iso
+/content/rc/rhel/server/7/x86_64/kickstart
+/content/rc/rhel/server/7/x86_64/os
+/content/rc/rhel/server/7/x86_64/source/iso
+/content/rc/rhel/server/7/x86_64/source/SRPMS
+/content/rc/rhel/server/7/$basearch/resilientstorage/os
+/content/rc/rhel/server/7/x86_64/supplementary/debug
+/content/rc/rhel/server/7/x86_64/supplementary/iso
+/content/rc/rhel/server/7/x86_64/supplementary/os
+/content/rc/rhel/server/7/x86_64/supplementary/source/SRPMS

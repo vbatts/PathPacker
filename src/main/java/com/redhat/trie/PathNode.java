@@ -28,7 +28,7 @@ import org.apache.log4j.Logger;
  *
  * It holds the relationships to children, as well as all parents that regard it as a child.
  *
- * The Name of a given PathNode, is inferred by the NodePair that regards this PathNode as it's "connection"
+ * The Name of a given PathNode, is inferred by the NodePair that regards this PathNode as its "connection"
  */
 public class PathNode {
     private static org.apache.log4j.Logger log = Logger.getLogger(PathTree.class);
