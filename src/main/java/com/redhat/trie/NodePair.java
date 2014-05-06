@@ -50,5 +50,13 @@ public class NodePair implements Comparable {
     public int compareTo(Object other) {
         return this.name.compareTo(((NodePair) other).name);
     }
+    
+    /**
+     * Does this <tt>NodePair</tt> have any children?
+     * @return <tt>true</tt> if it has at least one connection and <tt>false</tt> otherwise.
+     */
+    public boolean hasNoChildren() {
+      return getConnection().getChildren().size() == 0;
+    }
 }
 

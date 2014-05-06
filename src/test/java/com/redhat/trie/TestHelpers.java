@@ -16,11 +16,13 @@ import static org.junit.Assert.fail;
 import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
+import org.apache.log4j.Logger;
 
 /**
  * This class is just to provide helpers for the other tests
  */
 public class TestHelpers {
+  private static org.apache.log4j.Logger log = Logger.getLogger(TestHelpers.class);
 
     /**
      * junit requires at least one runnable test
@@ -33,8 +35,8 @@ public class TestHelpers {
     // Helpers
     // 
     public static boolean cmpStrings(List<String> thisList, List<String> thatList) {
-        Collection<String> thisColl = new ArrayList(thisList);
-        Collection<String> thatColl = new ArrayList(thatList);
+        Collection<String> thisColl = new ArrayList<String>(thisList);
+        Collection<String> thatColl = new ArrayList<String>(thatList);
 
         Collection<String> similar = new HashSet<String>( thisColl );
         Collection<String> different = new HashSet<String>();
@@ -43,7 +45,7 @@ public class TestHelpers {
 
         similar.retainAll( thatColl );
         different.removeAll( similar );
-        
+
         if (different.size() > 0) {
             System.out.printf("Different:%s%n", different);
         }
@@ -91,7 +93,14 @@ public class TestHelpers {
         String content;
         List<String> contentList = new ArrayList<String>();
         InputStream in = resStream(klass, filename);
-        BufferedReader br = new BufferedReader(new InputStreamReader(in));
+        BufferedReader br = null;
+        try {
+          br = new BufferedReader(new InputStreamReader(in));
+        } catch(NullPointerException npe) {
+          // can happen in the case of an empty content set list
+          log.warn(">>>>>>> Empty content set <<<<<");
+          return contentList;
+        }
 
         try {
             while ((content = br.readLine()) != null) {
