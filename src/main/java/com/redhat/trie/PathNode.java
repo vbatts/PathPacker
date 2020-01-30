@@ -16,12 +16,12 @@
 package com.redhat.trie;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.HashSet;
-import java.util.Collections;
-
-import org.apache.log4j.Logger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * PathNode is the relationship to an item in the path tree.
@@ -31,7 +31,7 @@ import org.apache.log4j.Logger;
  * The Name of a given PathNode, is inferred by the NodePair that regards this PathNode as its "connection"
  */
 public class PathNode {
-    private static org.apache.log4j.Logger log = Logger.getLogger(PathTree.class);
+    private static Logger log = Logger.getLogger(PathTree.class.getCanonicalName());
     private long id = 0;
     private List<NodePair> children = new ArrayList<NodePair>();
     private List<PathNode> parents = new ArrayList<PathNode>();
@@ -161,14 +161,11 @@ public class PathNode {
      * Traverse up the tree, and get the highest ancestor PathNode, for node.
      */
     public PathNode getStartNode(PathNode node) {
-        if (node.getParents().size() == 0) {
+        if (node.getParents().isEmpty()) {
             return node; // this is the end!
+        } else {
+            return node.getStartNode(node.getParents().get(0));
         }
-
-        for (PathNode parent : node.getParents()) {
-            return node.getStartNode(parent);
-        }
-        return node; // when in doubt, return yourself
     }
 
     /**
@@ -182,13 +179,11 @@ public class PathNode {
      * Traverse down the tree, and get the "endMarker" child, for node.
      */
     public PathNode getEndNode(PathNode node) {
-        if (node.getChildren().size() == 0) {
+        if (node.getChildren().isEmpty()) {
             return node; // this is the end!
+        } else {
+            return node.getEndNode(node.getChildren().get(0).getConnection());
         }
-        for (NodePair child : node.getChildren()) {
-            return node.getEndNode(child.getConnection());
-        }
-        return node; // when in doubt, return yourself
     }
 
     /**
@@ -233,7 +228,7 @@ public class PathNode {
     public boolean includes(PathNode that) {
         // if we are at the end of the tree we're checking against,
         // then it includes everything up to this point.
-        if (this.getChildren().size() == 0 || that.getChildren().size() == 0) {
+        if (this.getChildren().isEmpty() || that.getChildren().isEmpty()) {
             return true;
         }
 
@@ -248,8 +243,8 @@ public class PathNode {
                      thisnp.getName().startsWith("$") ||
                      thisnp.getName().equals(thatnp.getName()) ) {
                     result = thisnp.getConnection().includes(thatnp.getConnection());
-                    found.add(new Boolean(result).booleanValue());
-                    log.debug("includes: this: " + thisnp.getName() + " == that:" + thatnp.getName());
+                    found.add(result);
+                    log.log(Level.FINE, () -> "includes: this: " + thisnp.getName() + " == that:" + thatnp.getName());
                 }
             }
         }
@@ -262,12 +257,11 @@ public class PathNode {
      * pretty information
      */
     public String toString() {
-        String parentList =  "";
+        StringBuilder parentList =  new StringBuilder();
         for (PathNode parent : parents) {
-            parentList += ": " + parent.getId();
+            parentList.append(": " + parent.getId());
         }
-        parentList += "";
-        return "ID: " + id + ", Name: " + this.getName() + ", Parents" + parentList + ", Children: " + children;
+        return "ID: " + id + ", Name: " + this.getName() + ", Parents" + parentList.toString() + ", Children: " + children;
     }
 }
 

@@ -1,35 +1,33 @@
 package com.redhat.trie;
 
-import java.io.InputStreamReader;
+import org.junit.Test;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.IOException;
-
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
+import java.util.logging.Logger;
 
-import static org.junit.Assert.fail;
 import static org.junit.Assert.assertNotNull;
-
-import org.junit.Test;
-import org.apache.log4j.Logger;
+import static org.junit.Assert.fail;
 
 /**
  * This class is just to provide helpers for the other tests
  */
 public class TestHelpers {
-  private static org.apache.log4j.Logger log = Logger.getLogger(TestHelpers.class);
+  private static Logger log = Logger.getLogger(TestHelpers.class.getCanonicalName());
 
     /**
      * junit requires at least one runnable test
      */
     @Test
     public void testDeadVicker() {
-        assertNotNull(new String("What's its diocese?"));
+        assertNotNull("What's its diocese?");
     }
 
     // Helpers
@@ -98,7 +96,7 @@ public class TestHelpers {
           br = new BufferedReader(new InputStreamReader(in));
         } catch(NullPointerException npe) {
           // can happen in the case of an empty content set list
-          log.warn(">>>>>>> Empty content set <<<<<");
+          log.fine(">>>>>>> Empty content set <<<<<");
           return contentList;
         }
 

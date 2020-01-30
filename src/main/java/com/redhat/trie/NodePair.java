@@ -56,7 +56,7 @@ public class NodePair implements Comparable {
      * @return <tt>true</tt> if it has at least one connection and <tt>false</tt> otherwise.
      */
     public boolean hasNoChildren() {
-      return getConnection().getChildren().size() == 0;
+      return getConnection().getChildren().isEmpty();
     }
 }
 

@@ -15,26 +15,23 @@
 
 package com.redhat.trie;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.StringTokenizer;
-
-import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-
-import java.util.zip.Inflater;
-import java.util.zip.InflaterOutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.StringTokenizer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
-import java.util.zip.DataFormatException;
-
-import org.apache.log4j.Logger;
+import java.util.zip.Inflater;
+import java.util.zip.InflaterOutputStream;
 
 /**
  * PathTree
@@ -42,10 +39,10 @@ import org.apache.log4j.Logger;
  * An efficient means by which to check the content sets.
  */
 public class PathTree {
-    private static org.apache.log4j.Logger log = Logger.getLogger(PathTree.class);
+    private static Logger log = Logger.getLogger(PathTree.class.getCanonicalName());
     private List<HuffNode> nodeDictionary;
     private List<HuffNode> pathDictionary;
-    private StringBuffer nodeBits;
+    private StringBuilder nodeBits;
 
     private byte[] payload;
     
@@ -95,11 +92,7 @@ public class PathTree {
      * Constructor using the list of content sets.
      */
     public PathTree(List<String> contentSets) throws PayloadException {
-        try {
-            setContentSets(contentSets);
-        } catch (PayloadException ex) {
-            throw ex;
-        }
+        setContentSets(contentSets);
     }
 
     /**
@@ -150,13 +143,13 @@ public class PathTree {
     /**
      * the buffer of significant bits, with regard to how many nodes there are.
      * 
-     * @return      StringBuffer of 
+     * @return      StringBuilder of 
      */
-    private StringBuffer getNodeBits() {
+    private StringBuilder getNodeBits() {
         return this.nodeBits;
     }
 
-    private void setNodeBits(StringBuffer nodeBits) {
+    private void setNodeBits(StringBuilder nodeBits) {
         this.nodeBits = nodeBits;
     }
 
@@ -211,11 +204,11 @@ public class PathTree {
         }
         if (this.modified || this.pathDictionary == null || this.nodeDictionary == null) {
             this.nodeDictionary = new ArrayList<HuffNode>();
-            this.setNodeBits(new StringBuffer());
+            this.setNodeBits(new StringBuilder());
 
             ByteArrayInputStream bais = new ByteArrayInputStream(this.getPayload(),
-                (new Long(this.getDictOffset())).intValue(),
-                (new Long(this.getPayload().length - this.getDictOffset()).intValue()));
+                    ((int)(this.getDictOffset())),
+                ((int) (this.getPayload().length - this.getDictOffset())));
             int value = bais.read();
             // check for size bits
             this.setNodeCount(value);
@@ -261,11 +254,7 @@ public class PathTree {
      * @throws  PayloadException     if the newly read PathNode dictionary can not be read from the payload
      */
     private HuffNode getPathTrie() throws PayloadException {
-        try {
-            return makeTrie(getPathDictionary());
-        } catch (PayloadException ex) {
-            throw ex;
-        }
+        return makeTrie(getPathDictionary());
     }
 
     /**
@@ -275,11 +264,7 @@ public class PathTree {
      * @throws  PayloadException     if the newly read Node name dictionary can not be read from the payload
      */
     private HuffNode getNodeTrie() throws PayloadException {
-        try {
-            return makeTrie(getNodeDictionary());
-        } catch (PayloadException ex) {
-            throw ex;
-        }
+        return makeTrie(getNodeDictionary());
     }
 
     /**
@@ -287,17 +272,12 @@ public class PathTree {
      */
     public PathNode getRootPathNode() throws PayloadException {
         // populate the PathNodes so we can rebuild the cool url tree
-        Set<PathNode> pathNodes;
-        try {
-            pathNodes =  populatePathNodes(getNodeDictionary(),
+        Set<PathNode> pathNodes = populatePathNodes(getNodeDictionary(),
                 getPathTrie(), getNodeTrie(), getNodeBits());
-        } catch (PayloadException ex) {
-            throw ex;
-        }
         // find the root, he has no parents
         PathNode root = null;
         for (PathNode pn : pathNodes) {
-            if (pn.getParents().size() == 0) {
+            if (pn.getParents().isEmpty()) {
                 root = pn;
                 break;
             }
@@ -316,7 +296,7 @@ public class PathTree {
       try {
         rootPathNode = getRootPathNode();
       } catch(PayloadException pe) {
-        log.error(pe);
+        log.log(Level.SEVERE,"Payload Exception", pe);
         return false;
       }
       return test(contentPath, rootPathNode);
@@ -336,7 +316,7 @@ public class PathTree {
       /* Request is of the form "/content/rc/rhel/7/..." 
        * Grab the next element.
        */
-      log.debug("test(" + request + ")");
+      log.log(Level.FINE, () -> "test(" + request + ")");
       StringTokenizer tokenizer = new StringTokenizer(request, PATH_DELIMITER);
       if(tokenizer.countTokens() == 0) {
         return false;
@@ -344,12 +324,11 @@ public class PathTree {
       String currentToken = tokenizer.nextToken();
       for(NodePair nodePair: tree.getChildren()) {
         String nodePairName = nodePair.getName();
-        log.debug("Current token: [" + currentToken + "] =??= NodePair name: [" + nodePairName + "]");
+        log.log(Level.FINE, () -> "Current token: [" + currentToken + "] =??= NodePair name: [" + nodePairName + "]");
         if(currentToken.equals(nodePairName) || nodePairName.startsWith(CONTENT_PATH_VARIABLE_PREFIX)) {
           if(nodePair.hasNoChildren()) {
             return true;
           } else {
-            String s = PATH_DELIMITER + currentToken;
             boolean retval = test(request.substring(currentToken.length()+1), nodePair.getConnection());
             if(retval) {
               return true;
@@ -377,7 +356,7 @@ public class PathTree {
 
         PathNode treeRoot = PathTree.makePathTree(contentSets, new PathNode());
         List<String> nodeStrings = orderStrings(treeRoot);
-        if (nodeStrings.size() == 0) {
+        if (nodeStrings.isEmpty()) {
             this.payload = new byte[0];
             return;
         }
@@ -429,14 +408,14 @@ public class PathTree {
 
     private List<String> byteArrayToStringList(byte[] ba) {
         List<String> strings = new ArrayList<String>();
-        String str = "";
+        StringBuilder str = new StringBuilder();
 
         for (byte b : ba) {
             if (b == '\0') {
-                strings.add(str);
-                str = "";
+                strings.add(str.toString());
+                str.setLength(0);
             } else {
-                str += (char) b;
+                str.append((char) b);
             }
         }
         return strings;
@@ -475,9 +454,9 @@ public class PathTree {
      * @return  the Set of weighted PathNode
      */
     private Set<PathNode> populatePathNodes(List<HuffNode> thisNodeDictionary,
-        HuffNode pathTrie, HuffNode nodeTrie, StringBuffer theseNodeBits) {
+        HuffNode pathTrie, HuffNode nodeTrie, StringBuilder theseNodeBits) {
         Set<PathNode> pathNodes = new HashSet<PathNode>();
-        StringBuffer myNodeBits = new StringBuffer(theseNodeBits.toString());
+        StringBuilder myNodeBits = new StringBuilder(theseNodeBits.toString());
         for (HuffNode node : thisNodeDictionary) {
             pathNodes.add((PathNode) node.getValue());
             boolean stillNode = true;
@@ -485,7 +464,7 @@ public class PathTree {
                 // get first child name
                 // if its HuffNode.END_NODE we are done
                 String nameValue = null;
-                StringBuffer nameBits = new StringBuffer();
+                StringBuilder nameBits = new StringBuilder();
                 while (nameValue == null && stillNode) {
                     nameBits.append(myNodeBits.charAt(0));
                     myNodeBits.deleteCharAt(0);
@@ -503,7 +482,7 @@ public class PathTree {
                 }
 
                 PathNode nodeValue = null;
-                StringBuffer pathBits = new StringBuffer();
+                StringBuilder pathBits = new StringBuilder();
                 while (nodeValue == null && stillNode) {
                     pathBits.append(myNodeBits.charAt(0));
                     myNodeBits.deleteCharAt(0);
@@ -530,7 +509,7 @@ public class PathTree {
      */
     public List<String> toList() {
         List<String> urls = new ArrayList<String>();
-        StringBuffer aPath = new StringBuffer();
+        StringBuilder aPath = new StringBuilder();
         try {
             makeURLs(getRootPathNode(), urls, aPath);
         } catch (PayloadException ex) {
@@ -539,12 +518,12 @@ public class PathTree {
         return urls;
     }
 
-    private void makeURLs(PathNode root, List<String> urls, StringBuffer aPath) {
-        if (root.getChildren().size() == 0) {
+    private void makeURLs(PathNode root, List<String> urls, StringBuilder aPath) {
+        if (root.getChildren().isEmpty()) {
             urls.add(aPath.toString());
         }
         for (NodePair child : root.getChildren()) {
-            StringBuffer childPath = new StringBuffer(aPath.substring(0));
+            StringBuilder childPath = new StringBuilder(aPath.substring(0));
             childPath.append("/");
             childPath.append(child.getName());
             makeURLs(child.getConnection(), urls, childPath);
@@ -572,9 +551,8 @@ public class PathTree {
     private HuffNode mergeNodes(HuffNode node1, HuffNode node2) {
         HuffNode left = node1;
         HuffNode right = node2;
-        HuffNode parent = new HuffNode(getHuffNodeContext(),
+        return new HuffNode(getHuffNodeContext(),
                 null, left.getWeight() + right.getWeight(), left, right);
-        return parent;
     }
     
     private List<HuffNode> getStringNodeList(List<String> pathStrings) {
@@ -603,13 +581,13 @@ public class PathTree {
      * @return          deflated byte array
      */
     private byte[] byteProcess(List<String> entries)
-        throws IOException, UnsupportedEncodingException {
+        throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         DeflaterOutputStream dos = new DeflaterOutputStream(baos,
             new Deflater(Deflater.BEST_COMPRESSION));
         for (String segment : entries) {
-            dos.write(segment.getBytes("UTF-8"));
-            dos.write("\0".getBytes("UTF-8"));
+            dos.write(segment.getBytes(StandardCharsets.UTF_8));
+            dos.write("\0".getBytes(StandardCharsets.UTF_8));
         }
         dos.finish();
         dos.close();
@@ -622,11 +600,11 @@ public class PathTree {
         Map<String, Integer> segments =  new HashMap<String, Integer>();
         Set<PathNode> nodes =  new HashSet<PathNode>();
         buildSegments(segments, nodes, parent);
-        for (String part : segments.keySet()) {
-            if (!part.equals("")) {
-                int count = segments.get(part);
-                if (parts.size() == 0) {
-                    parts.add(part);
+        for (Map.Entry<String, Integer> part : segments.entrySet()) {
+            if (!part.getKey().equals("")) {
+                int count = part.getValue();
+                if (parts.isEmpty()) {
+                    parts.add(part.getKey());
                 }
                 else {
                     int pos = parts.size();
@@ -636,7 +614,7 @@ public class PathTree {
                             break;
                         }
                     }
-                    parts.add(pos, part);
+                    parts.add(pos, part.getKey());
                 }
             }
         }
@@ -654,10 +632,7 @@ public class PathTree {
             boolean start = false;
             /* TODO ??? */
             for (byte b : toByteArray(nodeSize)) {
-                if (b == 0 && !start) {
-                    continue;
-                }
-                else {
+                if (!(b == 0 && !start)) {
                     countBaos.write(b);
                     start = true;
                 }
@@ -673,7 +648,7 @@ public class PathTree {
         else {
             baos.write(nodeSize);
         }
-        StringBuffer bits = new StringBuffer();
+        StringBuilder bits = new StringBuilder();
         String endNodeLocationBitPath = stringParent.getBitPath(HuffNode.END_NODE);
         for (PathNode pn : pathNodes) {
             for (NodePair np : pn.getChildren()) {
@@ -726,7 +701,7 @@ public class PathTree {
         Set<PathNode> nodes =  treeRoot.getAllNodes();
         for (PathNode pn : nodes) {
             int count = pn.getParents().size();
-            if (nodes.size() == 0) {
+            if (nodes.isEmpty()) {
                 nodes.add(pn);
             }
             else {
@@ -786,7 +761,7 @@ public class PathTree {
             for (NodePair np : parent.getChildren()) {
                 Integer count = segments.get(np.getName());
                 if (count == null) {
-                    count = new Integer(0);
+                    count = 0;
                 }
                 segments.put(np.getName(), ++count);
                 buildSegments(segments, nodes, np.getConnection());
@@ -814,7 +789,6 @@ public class PathTree {
         // "equivalent" parents are merged
         List<PathNode> parentResult = new ArrayList<PathNode>();
         parentResult.addAll(location.getParents());
-        //log.debug(location);
         for (PathNode parent1 : location.getParents()) {
             if (!parentResult.contains(parent1)) {
                 continue;

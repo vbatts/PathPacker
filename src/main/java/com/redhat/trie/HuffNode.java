@@ -146,26 +146,22 @@ public class HuffNode {
      * get a String of the bits, that map to Object need
      */
     private String getBitPath(HuffNode trie, Object need) {
-        HuffNode left = trie.getLeft();
-        HuffNode right = trie.getRight();
-        if (left != null && left.getValue() != null) {
-            if (need.equals(left.getValue())) {
-                return "0";
-            }
+        HuffNode leftNode = trie.getLeft();
+        HuffNode rightNode = trie.getRight();
+        if (leftNode != null && leftNode.getValue() != null && need.equals(leftNode.getValue())) {
+            return "0";
         }
-        if (right != null && right.getValue() != null) {
-            if (need.equals(right.getValue())) {
-                return "1";
-            }
+        if (rightNode != null && rightNode.getValue() != null && need.equals(rightNode.getValue())) {
+            return "1";
         }
-        if (left != null) {
-            String leftPath = getBitPath(left, need);
+        if (leftNode != null) {
+            String leftPath = getBitPath(leftNode, need);
             if (leftPath.length() > 0) {
                 return "0" + leftPath;
             }
         }
-        if (right != null) {
-            String rightPath = getBitPath(right, need);
+        if (rightNode != null) {
+            String rightPath = getBitPath(rightNode, need);
             if (rightPath.length() > 0) {
                 return "1" + rightPath;
             }

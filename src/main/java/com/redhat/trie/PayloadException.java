@@ -15,8 +15,6 @@
 
 package com.redhat.trie;
 
-import java.lang.Exception;
-
 public class PayloadException extends Exception {
 }
 
